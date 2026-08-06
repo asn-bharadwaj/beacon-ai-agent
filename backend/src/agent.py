@@ -1,6 +1,4 @@
 import logging
-import urllib.request
-import xml.etree.ElementTree as ET
 
 from dotenv import load_dotenv
 from livekit import rtc
@@ -13,12 +11,9 @@ from livekit.agents import (
     cli,
     room_io,
     tokenize,
-    function_tool,
-    RunContext,
 )
 from livekit.plugins import deepgram, google, murf, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
-
 
 logger = logging.getLogger("agent")
 
@@ -32,42 +27,12 @@ When answering queries:
 1. Use clear, simple words. Avoid complex academic jargon or overly formal language. Use easy-to-understand analogies if helpful.
 2. Maintain a warm, enthusiastic, and approachable tone, like a friendly neighbor who knows a lot of cool facts.
 3. Keep responses highly conversational, short, and concise (2-3 sentences max). Avoid lists, emojis, markdown formatting, or symbols.
-4. If asked about today's news or current events, use the get_today_news tool to fetch the latest headlines, then explain/summarize them in your friendly, conversational tone."""
+4. If asked about real-time news, local updates, or details you don't know yet, just say so in a friendly way and offer to share some interesting history, background, or fun facts about the topic instead."""
 
 
 class Assistant(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_PROMPT)
-
-    @function_tool
-    async def get_today_news(self, context: RunContext) -> str:
-        """Use this tool to get the latest real-time news headlines.
-
-        Returns:
-            A string list of the current top news headlines.
-        """
-        logger.info("Fetching latest news headlines from Google News RSS...")
-        try:
-            url = "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en"
-            req = urllib.request.Request(
-                url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
-            )
-            with urllib.request.urlopen(req, timeout=5) as response:
-                xml_data = response.read()
-
-            root = ET.fromstring(xml_data)
-            headlines = []
-            for item in root.findall(".//item")[:5]:
-                title = item.find("title").text
-                if " - " in title:
-                    title = title.rsplit(" - ", 1)[0]
-                headlines.append(title)
-
-            return "Latest top news: " + "; ".join(headlines)
-        except Exception as e:
-            logger.error(f"Error fetching news: {e}")
-            return "Could not retrieve the news at this moment. Please try again later."
 
     # To add tools, use the @function_tool decorator.
     # Here's an example that adds a simple weather tool.
