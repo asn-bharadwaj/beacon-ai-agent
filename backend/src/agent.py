@@ -116,14 +116,17 @@ async def my_agent(ctx: JobContext):
     # # Start the avatar and wait for it to join
     # await avatar.start(session, room=ctx.room)
 
+    # Join the room and connect to the user
+    await ctx.connect()
+
     # Start the session, which initializes the voice pipeline and warms up the models
     await session.start(
         agent=Assistant(),
         room=ctx.room,
     )
 
-    # Join the room and connect to the user
-    await ctx.connect()
+    # Speak a warm greeting to let the user know we are ready
+    await session.say("Hey there! I am Beacon. What kind of interesting stories or fun facts can I share with you today?", allow_interruptions=True)
 
 
 if __name__ == "__main__":
