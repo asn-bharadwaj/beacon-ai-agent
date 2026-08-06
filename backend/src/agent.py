@@ -14,6 +14,8 @@ from livekit.agents import (
 )
 from livekit.plugins import deepgram, google, murf, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from livekit.plugins.google.tools import GoogleSearch
+
 
 logger = logging.getLogger("agent")
 
@@ -27,12 +29,15 @@ When answering queries:
 1. Use clear, simple words. Avoid complex academic jargon or overly formal language. Use easy-to-understand analogies if helpful.
 2. Maintain a warm, enthusiastic, and approachable tone, like a friendly neighbor who knows a lot of cool facts.
 3. Keep responses highly conversational, short, and concise (2-3 sentences max). Avoid lists, emojis, markdown formatting, or symbols.
-4. If asked about real-time news, local updates, or details you don't know yet, just say so in a friendly way and offer to share some interesting history, background, or fun facts about the topic instead."""
+4. If asked about today's news, real-time events, or current facts, use the Google Search tool to fetch the latest information, analyze it, and summarize it for the user in your friendly, simple conversational tone."""
 
 
 class Assistant(Agent):
     def __init__(self) -> None:
-        super().__init__(instructions=SYSTEM_PROMPT)
+        super().__init__(
+            instructions=SYSTEM_PROMPT,
+            tools=[GoogleSearch()],
+        )
 
     # To add tools, use the @function_tool decorator.
     # Here's an example that adds a simple weather tool.
