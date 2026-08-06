@@ -1,22 +1,8 @@
-import { Button } from '@/components/ui/button';
+'use client';
 
-function WelcomeImage() {
-  return (
-    <svg
-      width="64"
-      height="64"
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="text-fg0 mb-4 size-16"
-    >
-      <path
-        d="M15 24V40C15 40.7957 14.6839 41.5587 14.1213 42.1213C13.5587 42.6839 12.7956 43 12 43C11.2044 43 10.4413 42.6839 9.87868 42.1213C9.31607 41.5587 9 40.7957 9 40V24C9 23.2044 9.31607 22.4413 9.87868 21.8787C10.4413 21.3161 11.2044 21 12 21C12.7956 21 13.5587 21.3161 14.1213 21.8787C14.6839 22.4413 15 23.2044 15 24ZM22 5C21.2044 5 20.4413 5.31607 19.8787 5.87868C19.3161 6.44129 19 7.20435 19 8V56C19 56.7957 19.3161 57.5587 19.8787 58.1213C20.4413 58.6839 21.2044 59 22 59C22.7956 59 23.5587 58.6839 24.1213 58.1213C24.6839 57.5587 25 56.7957 25 56V8C25 7.20435 24.6839 6.44129 24.1213 5.87868C23.5587 5.31607 22.7956 5 22 5ZM32 13C31.2044 13 30.4413 13.3161 29.8787 13.8787C29.3161 14.4413 29 15.2044 29 16V48C29 48.7957 29.3161 49.5587 29.8787 50.1213C30.4413 50.6839 31.2044 51 32 51C32.7956 51 33.5587 50.6839 34.1213 50.1213C34.6839 49.5587 35 48.7957 35 48V16C35 15.2044 34.6839 14.4413 34.1213 13.8787C33.5587 13.3161 32.7956 13 32 13ZM42 21C41.2043 21 40.4413 21.3161 39.8787 21.8787C39.3161 22.4413 39 23.2044 39 24V40C39 40.7957 39.3161 41.5587 39.8787 42.1213C40.4413 42.6839 41.2043 43 42 43C42.7957 43 43.5587 42.6839 44.1213 42.1213C44.6839 41.5587 45 40.7957 45 40V24C45 23.2044 44.6839 22.4413 44.1213 21.8787C43.5587 21.3161 42.7957 21 42 21ZM52 17C51.2043 17 50.4413 17.3161 49.8787 17.8787C49.3161 18.4413 49 19.2044 49 20V44C49 44.7957 49.3161 45.5587 49.8787 46.1213C50.4413 46.6839 51.2043 47 52 47C52.7957 47 53.5587 46.6839 54.1213 46.1213C54.6839 45.5587 55 44.7957 55 44V20C55 19.2044 54.6839 18.4413 54.1213 17.8787C53.5587 17.3161 52.7957 17 52 17Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
+import React from 'react';
+import { Clock, Globe, Mic, Palette, Rocket } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface WelcomeViewProps {
   startButtonText: string;
@@ -28,38 +14,123 @@ export const WelcomeView = ({
   onStartCall,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
+  const categories = [
+    {
+      icon: <Rocket className="text-primary size-5" />,
+      title: 'Science & Space',
+      desc: 'Explore the cosmos and modern technology.',
+    },
+    {
+      icon: <Clock className="text-primary size-5" />,
+      title: 'History & Epochs',
+      desc: 'Discover events and figures of the past.',
+    },
+    {
+      icon: <Globe className="text-primary size-5" />,
+      title: 'Geography & Earth',
+      desc: 'Navigate world regions and physical systems.',
+    },
+    {
+      icon: <Palette className="text-primary size-5" />,
+      title: 'Arts & Literature',
+      desc: 'Appreciate global culture and masterpieces.',
+    },
+  ];
+
   return (
-    <div ref={ref}>
-      <section className="bg-background flex flex-col items-center justify-center text-center">
-        <WelcomeImage />
+    <div
+      ref={ref}
+      className="bg-background flex min-h-svh w-full items-center justify-center px-6 pt-24 pb-12 md:px-16 lg:px-24"
+    >
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-stretch gap-16 lg:grid-cols-[1.2fr_0.8fr]">
+        {/* Left Column: Spacious Editorial Headline & Category Cards */}
+        <div className="flex flex-col justify-center text-left">
+          {/* Bold attractive branding sub-header */}
+          <div className="mb-2 flex items-center gap-4">
+            <span className="dark:text-primary font-sans text-xl font-black tracking-[0.2em] text-[#E0533C] uppercase sm:text-2xl">
+              BEACON
+            </span>
+            <div className="dark:bg-primary h-0.5 w-12 rounded-full bg-[#E0533C] opacity-60" />
+          </div>
 
-        <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
-          Chat live with your voice AI agent
-        </p>
+          {/* Main Serif Headline */}
+          <h1 className="text-foreground mt-6 font-serif text-4xl leading-[1.15] font-bold tracking-tight sm:text-5xl md:text-6xl">
+            <span className="text-primary font-serif font-normal italic">Guide</span> your curiosity{' '}
+            <br />
+            through the <span className="text-primary font-serif font-normal italic">
+              wonders
+            </span>{' '}
+            of our world.
+          </h1>
 
-        <Button
-          size="lg"
-          onClick={onStartCall}
-          className="mt-6 w-64 rounded-full font-mono text-xs font-bold tracking-wider uppercase"
-        >
-          {startButtonText}
-        </Button>
-      </section>
+          {/* Detailed Paragraph */}
+          <p className="text-muted-foreground mt-6 max-w-lg text-base leading-relaxed sm:text-lg">
+            Beacon AI is an intelligent voice tutor designed to make learning more accessible
+            through natural, real-time conversations. Speak to ask questions, explore history,
+            science, geography, and culture with friendly, down-to-earth explanations.
+          </p>
 
-      <div className="fixed bottom-5 left-0 flex w-full items-center justify-center">
-        <p className="text-muted-foreground max-w-prose pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
-          Need help getting set up? Check out the{' '}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://docs.livekit.io/agents/start/voice-ai/"
-            className="underline"
-          >
-            Voice AI quickstart
-          </a>
-          .
-        </p>
+          {/* Clean Four-Category Grid */}
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {categories.map((cat, i) => (
+              <div
+                key={i}
+                className="border-border/40 bg-card/50 hover:border-primary/40 hover:bg-card group flex flex-col items-start rounded-2xl border p-5 transition-all duration-200 select-none hover:scale-[1.02]"
+              >
+                <div className="border-border/30 bg-background group-hover:border-primary/20 flex items-center justify-center rounded-xl border p-2 transition-colors">
+                  {cat.icon}
+                </div>
+                <h3 className="text-foreground mt-4 text-sm font-bold">{cat.title}</h3>
+                <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{cat.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Original Lighthouse Beacon Visualizer Card */}
+        <div className="flex items-center justify-center">
+          <div className="border-foreground bg-card relative flex w-full max-w-sm flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 p-8 pt-12 pb-12 shadow-[6px_6px_0px_var(--foreground)] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_var(--foreground)]">
+            {/* Lighthouse Tower Tower Line & Light Beam */}
+            <div className="absolute inset-x-0 top-10 flex flex-col items-center">
+              {/* Thin Vertical Tower Stem */}
+              <div className="dark:from-primary via-foreground/20 h-[140px] w-0.5 bg-linear-to-b from-amber-400 to-transparent" />
+
+              {/* Glowing Amber Beacon Orb */}
+              <div className="dark:bg-primary absolute top-0 z-20 flex size-8 animate-pulse items-center justify-center rounded-full bg-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.6)]">
+                <div className="size-3 rounded-full bg-white" />
+              </div>
+
+              {/* Sweeping Light Beam Overlay */}
+              <div
+                className="animate-sweep pointer-events-none absolute top-4 z-10 h-[50px] w-[280px] origin-left bg-gradient-to-r from-amber-400/20 via-amber-300/5 to-transparent"
+                style={{ left: '50%' }}
+              />
+            </div>
+
+            {/* Central Controls & Connect Action */}
+            <div className="z-30 mt-[180px] flex w-full flex-col items-center gap-6">
+              <div className="flex flex-col items-center text-center">
+                <span className="text-foreground text-xs font-bold tracking-wider uppercase">
+                  Connection Terminal
+                </span>
+                <span className="text-muted-foreground mt-1 text-[10px]">
+                  Click below to open the audio portal
+                </span>
+              </div>
+
+              <Button
+                size="lg"
+                onClick={onStartCall}
+                className="border-foreground bg-primary text-primary-foreground flex w-52 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+              >
+                <Mic className="size-4" />
+                <span>{startButtonText}</span>
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
+WelcomeView.displayName = 'WelcomeView';

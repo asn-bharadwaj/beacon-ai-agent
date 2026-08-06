@@ -1,4 +1,4 @@
-import { Public_Sans } from 'next/font/google';
+import { Playfair_Display, Public_Sans } from 'next/font/google';
 import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import { ThemeProvider } from '@/components/app/theme-provider';
@@ -10,6 +10,13 @@ import '@/styles/globals.css';
 const publicSans = Public_Sans({
   variable: '--font-public-sans',
   subsets: ['latin'],
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: '--font-playfair-display',
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  display: 'swap',
 });
 
 const commitMono = localFont({
@@ -56,6 +63,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       className={cn(
         publicSans.variable,
         commitMono.variable,
+        playfairDisplay.variable,
         'scroll-smooth font-sans antialiased'
       )}
     >
