@@ -115,7 +115,7 @@ async def my_agent(ctx: JobContext):
             locale="en-IN",
             style="Conversation",
             tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-            text_pacing=True,
+            text_pacing=False,
         ),
         # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
         # See more at https://docs.livekit.io/agents/build/turns
@@ -124,6 +124,8 @@ async def my_agent(ctx: JobContext):
         # allow the LLM to generate a response while waiting for the end of turn
         # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
         preemptive_generation=True,
+        min_endpointing_delay=0.3,
+        max_endpointing_delay=0.8,
     )
 
     # To use a realtime model instead of a voice pipeline, use the following session setup instead.
