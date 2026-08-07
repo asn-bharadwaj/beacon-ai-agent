@@ -39,7 +39,7 @@ export const CallEndedView = ({
           <Button
             size="lg"
             onClick={onRestart}
-            className="border-foreground bg-primary text-primary-foreground flex w-56 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+            className="border-foreground bg-primary text-primary-foreground flex w-auto cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-8 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
           >
             <RotateCcw className="size-4" />
             <span>Ignite Conversation Again</span>
