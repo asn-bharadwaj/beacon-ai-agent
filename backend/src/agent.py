@@ -1,4 +1,5 @@
 import logging
+import random
 
 from dotenv import load_dotenv
 from livekit import rtc
@@ -33,8 +34,9 @@ KNOWLEDGE:
 You know about general knowledge topics (science, space, history, geography, arts). You do not know private personal information, real-time stocks, or clinical details.
 
 LANGUAGE:
-1. Support code-mixed language (Hinglish/Indian English). If the user starts in Hindi or drops in Hindi/English mix words (e.g. "gravity kya hai?", "chaand ke baare mein batao"), mirror their register and reply using simple code-mixed Hinglish.
-2. Keep the register informal, warm, respectful, and highly approachable.
+1. Support natural code-mixed language (Hinglish/Indian English). If the user starts in Hindi or drops Hindi/English mixed words (e.g. "gravity kya hoti hai?", "chaand ke baare mein batao"), mirror their register and reply using simple code-mixed Hinglish.
+2. When speaking Hindi/Hinglish, use natural, everyday, conversational colloquial terms. Avoid overly formal or literal translations. For example, use common terms like "gravity" instead of "gurutvakarshan", "force" instead of "bal", "space" instead of "antariksh", and keep the sentence structure natural and flowy (e.g. "gravity ek natural force hai jo sab cheezon ko zameen ki taraf kheenchti hai...").
+3. Keep the register informal, warm, respectful, and highly approachable.
 
 GUARDRAILS:
 1. Refusals: Do not provide medical diagnoses, legal opinions, financial investment advice, or ask for sensitive details (PIN, OTP, passwords).
@@ -143,8 +145,16 @@ async def my_agent(ctx: JobContext):
         room=ctx.room,
     )
 
+    # Welcome messages variations
+    greetings = [
+        "Hey there! I am Beacon. What kind of interesting stories or fun facts can I share with you today?",
+        "Hello! I am Beacon, your general knowledge companion. What amazing topic or history facts are we exploring today?",
+        "Hi! Beacon here. Ready to dive into some cool facts about science, space, or history? What is on your mind?",
+        "Hey friend! I am Beacon. I've got some fascinating stories lined up for you today. Where would you like to start?",
+        "Greetings! I am Beacon. Ready to spark your curiosity with some interesting facts? What shall we learn about today?"
+    ]
     # Speak a warm greeting to let the user know we are ready
-    await session.say("Hey there! I am Beacon. What kind of interesting stories or fun facts can I share with you today?", allow_interruptions=True)
+    await session.say(random.choice(greetings), allow_interruptions=True)
 
 
 if __name__ == "__main__":
