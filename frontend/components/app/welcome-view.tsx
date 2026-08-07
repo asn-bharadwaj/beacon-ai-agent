@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, Globe, Mic, Palette, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -37,6 +37,36 @@ export const WelcomeView = ({
     },
   ];
 
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
+
+  const handleStartCall = async () => {
+    setMicError(null);
+    setIsConnecting(true);
+    try {
+      await onStartCall();
+    } catch (err: any) {
+      setIsConnecting(false);
+      console.error('Failed to start call:', err);
+      
+      const errMsg = String(err).toLowerCase();
+      if (
+        errMsg.includes('permission') || 
+        errMsg.includes('denied') || 
+        errMsg.includes('getusermedia') || 
+        errMsg.includes('notallowed')
+      ) {
+        setMicError(
+          'Microphone permission blocked! Please click the microphone/lock icon in your browser address bar and set permissions to "Allow".'
+        );
+      } else {
+        setMicError(
+          'Could not access your microphone. Please make sure your mic is plugged in and enabled in system settings.'
+        );
+      }
+    }
+  };
+
   return (
     <div
       ref={ref}
@@ -65,9 +95,9 @@ export const WelcomeView = ({
 
           {/* Detailed Paragraph */}
           <p className="text-muted-foreground mt-6 max-w-lg text-base leading-relaxed sm:text-lg">
-            Beacon AI is an intelligent voice tutor designed to make learning more accessible
-            through natural, real-time conversations. Speak to ask questions, explore history,
-            science, geography, and culture with friendly, down-to-earth explanations.
+             Beacon AI is an intelligent voice tutor designed to make learning more accessible
+             through natural, real-time conversations. Speak to ask questions, explore history,
+             science, geography, and culture with friendly, down-to-earth explanations.
           </p>
 
           {/* Clean Four-Category Grid */}
@@ -110,21 +140,51 @@ export const WelcomeView = ({
             {/* Central Controls & Connect Action */}
             <div className="z-30 mt-[180px] flex w-full flex-col items-center gap-6">
               <div className="flex flex-col items-center text-center">
-                <span className="text-foreground text-xs font-bold tracking-wider uppercase">
-                  Connection Terminal
-                </span>
-                <span className="text-muted-foreground mt-1 text-[10px]">
-                  Click below to open the audio portal
-                </span>
+                {isConnecting ? (
+                  <>
+                    <span className="text-primary text-xs font-black tracking-wider uppercase animate-pulse">
+                      Connecting
+                    </span>
+                    <span className="text-muted-foreground mt-1 text-[10px]">
+                      Please wait while we connect to Beacon...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-foreground text-xs font-bold tracking-wider uppercase">
+                      Connection Terminal
+                    </span>
+                    <span className="text-muted-foreground mt-1 text-[10px]">
+                      Click below to open the audio portal
+                    </span>
+                  </>
+                )}
               </div>
+
+              {micError && (
+                <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-xl border p-4 text-center text-xs leading-relaxed max-w-xs animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <p className="font-bold uppercase tracking-wider mb-1 text-[10px]">Permission Error</p>
+                  <p>{micError}</p>
+                </div>
+              )}
 
               <Button
                 size="lg"
-                onClick={onStartCall}
-                className="border-foreground bg-primary text-primary-foreground flex w-52 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                onClick={handleStartCall}
+                disabled={isConnecting}
+                className="border-foreground bg-primary text-primary-foreground flex w-52 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-75 disabled:cursor-not-allowed"
               >
-                <Mic className="size-4" />
-                <span>{startButtonText}</span>
+                {isConnecting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="size-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    Connecting...
+                  </span>
+                ) : (
+                  <>
+                    <Mic className="size-4" />
+                    <span>{startButtonText}</span>
+                  </>
+                )}
               </Button>
             </div>
           </div>

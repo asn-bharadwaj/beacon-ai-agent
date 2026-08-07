@@ -257,6 +257,22 @@ export function AgentSessionView_01({
             )}
           </AnimatePresence>
         )}
+        {/* Agent State Status Indicator */}
+        <div className="mx-auto flex justify-center pb-4 select-none">
+          <div className={cn(
+            "flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-[2px_2px_0px_var(--foreground)] border-foreground",
+            agentState === 'speaking' ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
+          )}>
+            <div className={cn(
+              "size-2 rounded-full",
+              agentState === 'speaking' ? "bg-white animate-pulse" : "bg-emerald-500 animate-ping"
+            )} />
+            <span>
+              {agentState === 'speaking' ? "Agent is speaking" : "Listening to you"}
+            </span>
+          </div>
+        </div>
+
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
           <AgentControlBar
