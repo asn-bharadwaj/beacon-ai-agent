@@ -259,17 +259,21 @@ export function AgentSessionView_01({
         )}
         {/* Agent State Status Indicator */}
         <div className="mx-auto flex justify-center pb-4 select-none">
-          <div className={cn(
-            "flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-[2px_2px_0px_var(--foreground)] border-foreground",
-            agentState === 'speaking' ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
-          )}>
-            <div className={cn(
-              "size-2 rounded-full",
-              agentState === 'speaking' ? "bg-white animate-pulse" : "bg-emerald-500 animate-ping"
-            )} />
-            <span>
-              {agentState === 'speaking' ? "Agent is speaking" : "Listening to you"}
-            </span>
+          <div
+            className={cn(
+              'border-foreground flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-wider uppercase shadow-[2px_2px_0px_var(--foreground)] transition-all duration-300',
+              agentState === 'speaking'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-foreground'
+            )}
+          >
+            <div
+              className={cn(
+                'size-2 rounded-full',
+                agentState === 'speaking' ? 'animate-pulse bg-white' : 'animate-ping bg-emerald-500'
+              )}
+            />
+            <span>{agentState === 'speaking' ? 'Agent is speaking' : 'Listening to you'}</span>
           </div>
         </div>
 

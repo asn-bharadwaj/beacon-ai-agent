@@ -1,13 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useSessionContext } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { AgentSessionView_01 } from '@/components/agents-ui/blocks/agent-session-view-01';
-import { WelcomeView } from '@/components/app/welcome-view';
 import { CallEndedView } from '@/components/app/call-ended-view';
+import { WelcomeView } from '@/components/app/welcome-view';
 
 const MotionWelcomeView = motion.create(WelcomeView);
 const MotionSessionView = motion.create(AgentSessionView_01);
@@ -69,11 +69,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
       )}
       {/* Call ended view */}
       {!isConnected && isCallEnded && (
-        <MotionCallEndedView
-          key="call-ended"
-          {...VIEW_MOTION_PROPS}
-          onRestart={handleRestart}
-        />
+        <MotionCallEndedView key="call-ended" {...VIEW_MOTION_PROPS} onRestart={handleRestart} />
       )}
       {/* Session view */}
       {isConnected && (

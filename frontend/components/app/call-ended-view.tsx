@@ -17,7 +17,7 @@ export const CallEndedView = ({
       ref={ref}
       className="bg-background flex min-h-svh w-full items-center justify-center px-6 pt-24 pb-12 md:px-16 lg:px-24"
     >
-      <div className="border-foreground bg-card relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 p-8 pt-12 pb-12 shadow-[6px_6px_0px_var(--foreground)] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_var(--foreground)] animate-in fade-in zoom-in-95 duration-200">
+      <div className="border-foreground bg-card animate-in fade-in zoom-in-95 relative flex w-full max-w-md flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 p-8 pt-12 pb-12 shadow-[6px_6px_0px_var(--foreground)] transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_var(--foreground)]">
         {/* PhoneOff icon container */}
         <div className="border-border/30 bg-destructive/10 text-destructive flex size-16 items-center justify-center rounded-full border p-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
           <PhoneOff className="size-8" />
@@ -29,8 +29,10 @@ export const CallEndedView = ({
             <span className="text-foreground text-lg font-black tracking-wider uppercase">
               Call Ended
             </span>
-            <p className="text-muted-foreground mt-3 text-sm max-w-xs leading-relaxed">
-              Your conversation with Beacon is complete. Thank you for exploring the world's wonders with us!
+            <p className="text-muted-foreground mt-3 max-w-xs text-sm leading-relaxed">
+              {
+                "Your conversation with Beacon is complete. Thank you for exploring the world's wonders with us!"
+              }
             </p>
           </div>
 
