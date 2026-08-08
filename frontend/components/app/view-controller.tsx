@@ -41,6 +41,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   const participants = useParticipants();
   const { resolvedTheme } = useTheme();
 
+  const [startResolved, setStartResolved] = useState(false);
   const [connectionStage, setConnectionStage] = useState<
     'idle' | 'igniting' | 'connecting' | 'waiting' | 'done'
   >('idle');
@@ -50,6 +51,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   useEffect(() => {
     if (connectionState === 'disconnected' && connectionStage !== 'igniting') {
       setConnectionStage('idle');
+      setStartResolved(false);
       return;
     }
 
@@ -57,7 +59,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
       setConnectionStage('connecting');
     }
 
-    if (connectionState === 'connected') {
+    if (connectionState === 'connected' && startResolved) {
       const hasAgent = participants.some((p) => !p.isLocal);
       if (hasAgent) {
         setConnectionStage('done');
@@ -65,7 +67,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
         setConnectionStage('waiting');
       }
     }
-  }, [connectionState, participants, connectionStage]);
+  }, [connectionState, participants, connectionStage, startResolved]);
 
   useEffect(() => {
     if (connectionStage === 'done') {
@@ -82,15 +84,19 @@ export function ViewController({ appConfig }: ViewControllerProps) {
       setIsSessionActive(false);
       setIsCallEnded(true);
       setConnectionStage('idle');
+      setStartResolved(false);
     }
   }, [connectionState, isSessionActive]);
 
   const handleStartCall = async () => {
     try {
+      setStartResolved(false);
       setConnectionStage('igniting');
       await start();
+      setStartResolved(true);
     } catch (err: unknown) {
       setConnectionStage('idle');
+      setStartResolved(false);
       try {
         await end();
       } catch (disconnectErr) {
