@@ -2,7 +2,6 @@ import logging
 import random
 
 from dotenv import load_dotenv
-from livekit import rtc
 from livekit.agents import (
     Agent,
     AgentServer,
@@ -10,7 +9,6 @@ from livekit.agents import (
     JobContext,
     JobProcess,
     cli,
-    room_io,
     tokenize,
 )
 from livekit.plugins import deepgram, google, murf, silero
@@ -117,10 +115,9 @@ async def my_agent(ctx: JobContext):
         # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
         tts=murf.TTS(
             voice="Anisha",
-            locale="en-IN",
             style="Conversation",
             tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-            text_pacing=False,
+            text_pacing=True,
         ),
         # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
         # See more at https://docs.livekit.io/agents/build/turns
@@ -166,7 +163,7 @@ async def my_agent(ctx: JobContext):
         "Hello! I am Beacon, your general knowledge companion. What amazing topic or history facts are we exploring today?",
         "Hi! Beacon here. Ready to dive into some cool facts about science, space, or history? What is on your mind?",
         "Hey friend! I am Beacon. I've got some fascinating stories lined up for you today. Where would you like to start?",
-        "Greetings! I am Beacon. Ready to spark your curiosity with some interesting facts? What shall we learn about today?"
+        "Greetings! I am Beacon. Ready to spark your curiosity with some interesting facts? What shall we learn about today?",
     ]
     # Speak a warm greeting to let the user know we are ready
     await session.say(random.choice(greetings), allow_interruptions=True)
