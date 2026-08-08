@@ -36,7 +36,7 @@ interface ViewControllerProps {
 }
 
 export function ViewController({ appConfig }: ViewControllerProps) {
-  const { start, end } = useSessionContext();
+  const { isConnected, start, end } = useSessionContext();
   const connectionState = useConnectionState();
   const participants = useParticipants();
   const { resolvedTheme } = useTheme();
