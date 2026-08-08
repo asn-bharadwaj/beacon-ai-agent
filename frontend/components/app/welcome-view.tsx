@@ -79,15 +79,6 @@ export const WelcomeView = ({
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-stretch gap-16 lg:grid-cols-[1.2fr_0.8fr]">
         {/* Left Column: Spacious Editorial Headline & Category Cards */}
         <div className="animate-in fade-in slide-in-from-left-4 flex flex-col justify-center text-left duration-500">
-          {/* Contest/Powered By Badge */}
-          <div className="border-primary/20 bg-primary/5 text-primary mb-6 flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold tracking-wider uppercase select-none">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
-              <span className="bg-primary relative inline-flex size-1.5 rounded-full"></span>
-            </span>
-            Powered by Murf Falcon TTS API & LiveKit Agents
-          </div>
-
           {/* Bold attractive branding sub-header */}
           <div className="flex items-center gap-4">
             <span className="dark:text-primary font-sans text-xl font-black tracking-[0.2em] text-[#E0533C] uppercase sm:text-2xl">
