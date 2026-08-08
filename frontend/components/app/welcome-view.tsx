@@ -19,24 +19,28 @@ export const WelcomeView = ({
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   const categories = [
     {
-      icon: <Rocket className="text-primary size-5" />,
+      icon: <Rocket className="size-5 text-indigo-500 dark:text-indigo-400" />,
       title: 'Science & Space',
       desc: 'Explore the cosmos and modern technology.',
+      color: 'indigo',
     },
     {
-      icon: <Clock className="text-primary size-5" />,
+      icon: <Clock className="size-5 text-amber-500 dark:text-amber-400" />,
       title: 'History & Epochs',
       desc: 'Discover events and figures of the past.',
+      color: 'amber',
     },
     {
-      icon: <Globe className="text-primary size-5" />,
-      title: 'Geography & Earth',
-      desc: 'Navigate world regions and physical systems.',
+      icon: <Globe className="size-5 text-emerald-500 dark:text-emerald-400" />,
+      title: 'Geography & Travel',
+      desc: 'Embark on a voyage to discover our planet.',
+      color: 'emerald',
     },
     {
-      icon: <Palette className="text-primary size-5" />,
+      icon: <Palette className="size-5 text-rose-500 dark:text-rose-400" />,
       title: 'Arts & Literature',
       desc: 'Appreciate global culture and masterpieces.',
+      color: 'rose',
     },
   ];
 
@@ -74,9 +78,18 @@ export const WelcomeView = ({
     >
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-stretch gap-16 lg:grid-cols-[1.2fr_0.8fr]">
         {/* Left Column: Spacious Editorial Headline & Category Cards */}
-        <div className="flex flex-col justify-center text-left">
+        <div className="animate-in fade-in slide-in-from-left-4 flex flex-col justify-center text-left duration-500">
+          {/* Contest/Powered By Badge */}
+          <div className="border-primary/20 bg-primary/5 text-primary mb-6 flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold tracking-wider uppercase select-none">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+              <span className="bg-primary relative inline-flex size-1.5 rounded-full"></span>
+            </span>
+            Powered by Murf Falcon TTS API & LiveKit Agents
+          </div>
+
           {/* Bold attractive branding sub-header */}
-          <div className="mb-2 flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <span className="dark:text-primary font-sans text-xl font-black tracking-[0.2em] text-[#E0533C] uppercase sm:text-2xl">
               BEACON
             </span>
@@ -105,9 +118,28 @@ export const WelcomeView = ({
             {categories.map((cat, i) => (
               <div
                 key={i}
-                className="border-border/40 bg-card/50 hover:border-primary/40 hover:bg-card group flex flex-col items-start rounded-2xl border p-5 transition-all duration-200 select-none hover:scale-[1.02]"
+                className={cn(
+                  'border-border/40 bg-card/50 hover:bg-card/90 group flex flex-col items-start rounded-2xl border p-5 transition-all duration-300 select-none hover:scale-[1.02] hover:shadow-lg',
+                  cat.color === 'indigo' && 'hover:border-indigo-500/30 hover:shadow-indigo-500/5',
+                  cat.color === 'amber' && 'hover:border-amber-500/30 hover:shadow-amber-500/5',
+                  cat.color === 'emerald' &&
+                    'hover:border-emerald-500/30 hover:shadow-emerald-500/5',
+                  cat.color === 'rose' && 'hover:border-rose-500/30 hover:shadow-rose-500/5'
+                )}
               >
-                <div className="border-border/30 bg-background group-hover:border-primary/20 flex items-center justify-center rounded-xl border p-2 transition-colors">
+                <div
+                  className={cn(
+                    'flex items-center justify-center rounded-xl border p-2 transition-colors duration-300',
+                    cat.color === 'indigo' &&
+                      'border-indigo-500/20 bg-indigo-500/10 group-hover:bg-indigo-500/20',
+                    cat.color === 'amber' &&
+                      'border-amber-500/20 bg-amber-500/10 group-hover:bg-amber-500/20',
+                    cat.color === 'emerald' &&
+                      'border-emerald-500/20 bg-emerald-500/10 group-hover:bg-emerald-500/20',
+                    cat.color === 'rose' &&
+                      'border-rose-500/20 bg-rose-500/10 group-hover:bg-rose-500/20'
+                  )}
+                >
                   {cat.icon}
                 </div>
                 <h3 className="text-foreground mt-4 text-sm font-bold">{cat.title}</h3>
@@ -118,8 +150,8 @@ export const WelcomeView = ({
         </div>
 
         {/* Right Column: Original Lighthouse Beacon Visualizer Card */}
-        <div className="flex items-center justify-center">
-          <div className="border-foreground bg-card relative flex w-full max-w-sm flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 p-8 pt-12 pb-12 shadow-[6px_6px_0px_var(--foreground)] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_var(--foreground)]">
+        <div className="animate-in fade-in slide-in-from-right-4 flex items-center justify-center duration-500">
+          <div className="border-foreground bg-card/65 relative flex w-full max-w-sm flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 p-8 pt-12 pb-12 shadow-[6px_6px_0px_var(--foreground)] backdrop-blur-md transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_var(--foreground)]">
             {/* Lighthouse Tower Tower Line & Light Beam */}
             <div className="absolute inset-x-0 top-10 flex flex-col items-center">
               {/* Thin Vertical Tower Stem */}
@@ -149,7 +181,7 @@ export const WelcomeView = ({
               )}
 
               {connectionStage !== 'idle' ? (
-                <div className="border-foreground bg-card animate-in fade-in zoom-in-95 flex w-full max-w-xs flex-col rounded-2xl border-2 p-5 text-left shadow-[4px_4px_0px_var(--foreground)]">
+                <div className="border-foreground bg-card/75 animate-in fade-in zoom-in-95 flex w-full max-w-xs flex-col rounded-2xl border-2 p-5 text-left shadow-[4px_4px_0px_var(--foreground)] backdrop-blur-sm">
                   {/* Header */}
                   <div className="mb-3 flex items-center justify-between">
                     <span className="text-foreground text-[10px] font-black tracking-widest uppercase">
