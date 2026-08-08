@@ -36,25 +36,90 @@ interface ViewControllerProps {
 }
 
 export function ViewController({ appConfig }: ViewControllerProps) {
-  const { isConnected, start, end } = useSessionContext();
+  const { room, start, end } = useSessionContext();
   const { resolvedTheme } = useTheme();
 
+  const [participantsCount, setParticipantsCount] = useState(room?.remoteParticipants.size || 0);
+  const [roomState, setRoomState] = useState(room?.state || 'disconnected');
+  const [connectionStage, setConnectionStage] = useState<
+    'idle' | 'igniting' | 'connecting' | 'waiting' | 'done'
+  >('idle');
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isCallEnded, setIsCallEnded] = useState(false);
 
   useEffect(() => {
-    if (!isConnected && isSessionActive) {
+    if (!room) return;
+
+    const handleStateChange = () => {
+      setRoomState(room.state);
+    };
+
+    const handleParticipantConnected = () => {
+      setParticipantsCount(room.remoteParticipants.size);
+    };
+
+    const handleParticipantDisconnected = () => {
+      setParticipantsCount(room.remoteParticipants.size);
+    };
+
+    room.on('stateChanged', handleStateChange);
+    room.on('participantConnected', handleParticipantConnected);
+    room.on('participantDisconnected', handleParticipantDisconnected);
+
+    // Sync initial state
+    setRoomState(room.state);
+    setParticipantsCount(room.remoteParticipants.size);
+
+    return () => {
+      room.off('stateChanged', handleStateChange);
+      room.off('participantConnected', handleParticipantConnected);
+      room.off('participantDisconnected', handleParticipantDisconnected);
+    };
+  }, [room]);
+
+  useEffect(() => {
+    if (roomState === 'disconnected' && connectionStage !== 'igniting') {
+      setConnectionStage('idle');
+      return;
+    }
+
+    if (connectionStage === 'igniting' && roomState === 'connecting') {
+      setConnectionStage('connecting');
+    }
+
+    if (roomState === 'connected') {
+      if (participantsCount > 0) {
+        setConnectionStage('done');
+      } else {
+        setConnectionStage('waiting');
+      }
+    }
+  }, [roomState, participantsCount, connectionStage]);
+
+  useEffect(() => {
+    if (connectionStage === 'done') {
+      const timer = setTimeout(() => {
+        setIsSessionActive(true);
+        setIsCallEnded(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [connectionStage]);
+
+  useEffect(() => {
+    if (roomState === 'disconnected' && isSessionActive) {
       setIsSessionActive(false);
       setIsCallEnded(true);
+      setConnectionStage('idle');
     }
-  }, [isConnected, isSessionActive]);
+  }, [roomState, isSessionActive]);
 
   const handleStartCall = async () => {
     try {
+      setConnectionStage('igniting');
       await start();
-      setIsSessionActive(true);
-      setIsCallEnded(false);
     } catch (err: unknown) {
+      setConnectionStage('idle');
       try {
         await end();
       } catch (disconnectErr) {
@@ -77,6 +142,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
           {...VIEW_MOTION_PROPS}
           startButtonText={appConfig.startButtonText}
           onStartCall={handleStartCall}
+          connectionStage={connectionStage}
         />
       )}
       {/* Call ended view */}

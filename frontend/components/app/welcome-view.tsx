@@ -3,15 +3,18 @@
 import React, { useState } from 'react';
 import { Clock, Globe, Mic, Palette, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/shadcn/utils';
 
 interface WelcomeViewProps {
   startButtonText: string;
   onStartCall: () => Promise<void>;
+  connectionStage: 'idle' | 'igniting' | 'connecting' | 'waiting' | 'done';
 }
 
 export const WelcomeView = ({
   startButtonText,
   onStartCall,
+  connectionStage,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   const categories = [
@@ -37,16 +40,13 @@ export const WelcomeView = ({
     },
   ];
 
-  const [isConnecting, setIsConnecting] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
 
   const handleStartCall = async () => {
     setMicError(null);
-    setIsConnecting(true);
     try {
       await onStartCall();
     } catch (err: unknown) {
-      setIsConnecting(false);
       console.error('Failed to start call:', err);
 
       const errMsg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
@@ -139,28 +139,6 @@ export const WelcomeView = ({
 
             {/* Central Controls & Connect Action */}
             <div className="z-30 mt-[180px] flex w-full flex-col items-center gap-6">
-              <div className="flex flex-col items-center text-center">
-                {isConnecting ? (
-                  <>
-                    <span className="text-primary animate-pulse text-xs font-black tracking-wider uppercase">
-                      Connecting
-                    </span>
-                    <span className="text-muted-foreground mt-1 text-[10px]">
-                      Please wait while we connect to Beacon...
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-foreground text-xs font-bold tracking-wider uppercase">
-                      Connection Terminal
-                    </span>
-                    <span className="text-muted-foreground mt-1 text-[10px]">
-                      Click below to open the audio portal
-                    </span>
-                  </>
-                )}
-              </div>
-
               {micError && (
                 <div className="border-destructive/30 bg-destructive/10 text-destructive animate-in fade-in slide-in-from-bottom-2 max-w-xs rounded-xl border p-4 text-center text-xs leading-relaxed duration-200">
                   <p className="mb-1 text-[10px] font-bold tracking-wider uppercase">
@@ -170,24 +148,85 @@ export const WelcomeView = ({
                 </div>
               )}
 
-              <Button
-                size="lg"
-                onClick={handleStartCall}
-                disabled={isConnecting}
-                className="border-foreground bg-primary text-primary-foreground flex w-52 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-75"
-              >
-                {isConnecting ? (
-                  <span className="flex items-center gap-2">
-                    <span className="border-primary-foreground size-3 animate-spin rounded-full border-2 border-t-transparent" />
-                    Connecting...
-                  </span>
-                ) : (
-                  <>
+              {connectionStage !== 'idle' ? (
+                <div className="border-foreground bg-card animate-in fade-in zoom-in-95 flex w-full max-w-xs flex-col rounded-2xl border-2 p-5 text-left shadow-[4px_4px_0px_var(--foreground)]">
+                  {/* Header */}
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-foreground text-[10px] font-black tracking-widest uppercase">
+                      Session Link
+                    </span>
+                    <span className="text-muted-foreground flex items-center gap-1.5 text-[9px] font-bold uppercase">
+                      <span
+                        className={cn(
+                          'size-1.5 rounded-full',
+                          connectionStage === 'done'
+                            ? 'animate-pulse bg-emerald-500'
+                            : 'bg-primary animate-ping'
+                        )}
+                      />
+                      {connectionStage === 'done' ? 'Done' : 'Linking'}
+                    </span>
+                  </div>
+
+                  {/* Progress Track */}
+                  <div className="border-foreground bg-muted relative h-3.5 w-full overflow-hidden rounded-full border-2">
+                    <div
+                      className={cn(
+                        'h-full transition-all duration-500 ease-out',
+                        connectionStage === 'done' ? 'bg-emerald-500' : 'bg-primary'
+                      )}
+                      style={{
+                        width:
+                          connectionStage === 'igniting'
+                            ? '25%'
+                            : connectionStage === 'connecting'
+                              ? '50%'
+                              : connectionStage === 'waiting'
+                                ? '75%'
+                                : connectionStage === 'done'
+                                  ? '100%'
+                                  : '0%',
+                      }}
+                    />
+                  </div>
+
+                  {/* Steps status message */}
+                  <div className="mt-3 flex items-start gap-2">
+                    <span className="text-foreground/80 mt-0.5 text-[10px] font-bold">
+                      {connectionStage === 'igniting' && '1/3'}
+                      {connectionStage === 'connecting' && '2/3'}
+                      {connectionStage === 'waiting' && '3/3'}
+                      {connectionStage === 'done' && '✔'}
+                    </span>
+                    <p className="text-foreground text-[11px] leading-relaxed font-semibold">
+                      {connectionStage === 'igniting' && 'Igniting conversation request...'}
+                      {connectionStage === 'connecting' && 'Connecting to secure voice room...'}
+                      {connectionStage === 'waiting' && 'Handshaking: Waiting for agent...'}
+                      {connectionStage === 'done' && 'Connected! Done.'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col items-center text-center">
+                    <span className="text-foreground text-xs font-bold tracking-wider uppercase">
+                      Connection Terminal
+                    </span>
+                    <span className="text-muted-foreground mt-1 text-[10px]">
+                      Click below to open the audio portal
+                    </span>
+                  </div>
+
+                  <Button
+                    size="lg"
+                    onClick={handleStartCall}
+                    className="border-foreground bg-primary text-primary-foreground flex w-52 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                  >
                     <Mic className="size-4" />
                     <span>{startButtonText}</span>
-                  </>
-                )}
-              </Button>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
