@@ -39,18 +39,30 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   const { isConnected, start, end } = useSessionContext();
   const { resolvedTheme } = useTheme();
 
-  const [hasConnected, setHasConnected] = useState(false);
+  const [isSessionActive, setIsSessionActive] = useState(false);
   const [isCallEnded, setIsCallEnded] = useState(false);
 
   useEffect(() => {
-    if (isConnected) {
-      setHasConnected(true);
-      setIsCallEnded(false);
-    } else if (hasConnected) {
-      setHasConnected(false);
+    if (!isConnected && isSessionActive) {
+      setIsSessionActive(false);
       setIsCallEnded(true);
     }
-  }, [isConnected, hasConnected]);
+  }, [isConnected, isSessionActive]);
+
+  const handleStartCall = async () => {
+    try {
+      await start();
+      setIsSessionActive(true);
+      setIsCallEnded(false);
+    } catch (err: unknown) {
+      try {
+        await end();
+      } catch (disconnectErr) {
+        console.error('Failed to disconnect after error:', disconnectErr);
+      }
+      throw err;
+    }
+  };
 
   const handleRestart = () => {
     setIsCallEnded(false);
@@ -59,21 +71,20 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   return (
     <AnimatePresence mode="wait">
       {/* Welcome view */}
-      {!isConnected && !isCallEnded && (
+      {!isSessionActive && !isCallEnded && (
         <MotionWelcomeView
           key="welcome"
           {...VIEW_MOTION_PROPS}
           startButtonText={appConfig.startButtonText}
-          onStartCall={start}
-          onDisconnect={end}
+          onStartCall={handleStartCall}
         />
       )}
       {/* Call ended view */}
-      {!isConnected && isCallEnded && (
+      {!isSessionActive && isCallEnded && (
         <MotionCallEndedView key="call-ended" {...VIEW_MOTION_PROPS} onRestart={handleRestart} />
       )}
       {/* Session view */}
-      {isConnected && (
+      {isSessionActive && isConnected && (
         <MotionSessionView
           key="session-view"
           {...VIEW_MOTION_PROPS}
