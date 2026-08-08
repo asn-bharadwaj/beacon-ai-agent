@@ -46,8 +46,28 @@ export const WelcomeView = ({
 
   const [micError, setMicError] = useState<string | null>(null);
 
+  const checkMicPermission = async (): Promise<boolean> => {
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        if (result.state === 'denied') {
+          setMicError(
+            'Microphone permission blocked! Please click the microphone/lock icon in your browser address bar and set permissions to "Allow".'
+          );
+          return false;
+        }
+      }
+    } catch (e) {
+      console.warn('Permissions API query failed:', e);
+    }
+    return true;
+  };
+
   const handleStartCall = async () => {
     setMicError(null);
+    const hasPermission = await checkMicPermission();
+    if (!hasPermission) return;
+
     try {
       await onStartCall();
     } catch (err: unknown) {
@@ -68,6 +88,20 @@ export const WelcomeView = ({
           'Could not access your microphone. Please make sure your mic is plugged in and enabled in system settings.'
         );
       }
+    }
+  };
+
+  const handleRequestPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      setMicError(null);
+      await handleStartCall();
+    } catch (err: unknown) {
+      console.error('Permission request rejected:', err);
+      setMicError(
+        'Microphone permission blocked! Please click the microphone/lock icon in your browser address bar and set permissions to "Allow".'
+      );
     }
   };
 
@@ -164,10 +198,17 @@ export const WelcomeView = ({
             <div className="z-30 mt-[180px] flex w-full flex-col items-center gap-6">
               {micError && (
                 <div className="border-destructive/30 bg-destructive/10 text-destructive animate-in fade-in slide-in-from-bottom-2 max-w-xs rounded-xl border p-4 text-center text-xs leading-relaxed duration-200">
-                  <p className="mb-1 text-[10px] font-bold tracking-wider uppercase">
+                  <p className="mb-1 font-sans text-[10px] font-bold tracking-wider uppercase">
                     Permission Error
                   </p>
-                  <p>{micError}</p>
+                  <p className="mb-3">{micError}</p>
+                  <Button
+                    size="sm"
+                    onClick={handleRequestPermission}
+                    className="border-destructive/40 hover:bg-destructive/20 text-destructive h-8 w-full cursor-pointer rounded-lg border bg-transparent text-[10px] font-bold uppercase transition-all duration-150 active:scale-95"
+                  >
+                    Request Microphone Access
+                  </Button>
                 </div>
               )}
 
