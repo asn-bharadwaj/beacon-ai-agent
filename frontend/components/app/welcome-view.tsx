@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 
 interface WelcomeViewProps {
   startButtonText: string;
-  onStartCall: () => void;
+  onStartCall: () => Promise<void>;
+  onDisconnect: () => Promise<void>;
 }
 
 export const WelcomeView = ({
   startButtonText,
   onStartCall,
+  onDisconnect,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   const categories = [
@@ -48,6 +50,11 @@ export const WelcomeView = ({
     } catch (err: unknown) {
       setIsConnecting(false);
       console.error('Failed to start call:', err);
+      try {
+        await onDisconnect();
+      } catch (disconnectErr) {
+        console.error('Failed to disconnect after error:', disconnectErr);
+      }
 
       const errMsg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
       if (

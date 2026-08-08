@@ -36,7 +36,7 @@ interface ViewControllerProps {
 }
 
 export function ViewController({ appConfig }: ViewControllerProps) {
-  const { isConnected, start } = useSessionContext();
+  const { isConnected, start, end } = useSessionContext();
   const { resolvedTheme } = useTheme();
 
   const [hasConnected, setHasConnected] = useState(false);
@@ -65,6 +65,7 @@ export function ViewController({ appConfig }: ViewControllerProps) {
           {...VIEW_MOTION_PROPS}
           startButtonText={appConfig.startButtonText}
           onStartCall={start}
+          onDisconnect={end}
         />
       )}
       {/* Call ended view */}
