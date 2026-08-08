@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { AnimatePresence, motion } from 'motion/react';
-import { useSessionContext } from '@livekit/components-react';
+import { useConnectionState, useParticipants, useSessionContext } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { AgentSessionView_01 } from '@/components/agents-ui/blocks/agent-session-view-01';
 import { CallEndedView } from '@/components/app/call-ended-view';
@@ -36,11 +36,11 @@ interface ViewControllerProps {
 }
 
 export function ViewController({ appConfig }: ViewControllerProps) {
-  const { room, start, end } = useSessionContext();
+  const { start, end } = useSessionContext();
+  const connectionState = useConnectionState();
+  const participants = useParticipants();
   const { resolvedTheme } = useTheme();
 
-  const [participantsCount, setParticipantsCount] = useState(room?.remoteParticipants.size || 0);
-  const [roomState, setRoomState] = useState(room?.state || 'disconnected');
   const [connectionStage, setConnectionStage] = useState<
     'idle' | 'igniting' | 'connecting' | 'waiting' | 'done'
   >('idle');
@@ -48,53 +48,24 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   const [isCallEnded, setIsCallEnded] = useState(false);
 
   useEffect(() => {
-    if (!room) return;
-
-    const handleStateChange = () => {
-      setRoomState(room.state);
-    };
-
-    const handleParticipantConnected = () => {
-      setParticipantsCount(room.remoteParticipants.size);
-    };
-
-    const handleParticipantDisconnected = () => {
-      setParticipantsCount(room.remoteParticipants.size);
-    };
-
-    room.on('stateChanged', handleStateChange);
-    room.on('participantConnected', handleParticipantConnected);
-    room.on('participantDisconnected', handleParticipantDisconnected);
-
-    // Sync initial state
-    setRoomState(room.state);
-    setParticipantsCount(room.remoteParticipants.size);
-
-    return () => {
-      room.off('stateChanged', handleStateChange);
-      room.off('participantConnected', handleParticipantConnected);
-      room.off('participantDisconnected', handleParticipantDisconnected);
-    };
-  }, [room]);
-
-  useEffect(() => {
-    if (roomState === 'disconnected' && connectionStage !== 'igniting') {
+    if (connectionState === 'disconnected' && connectionStage !== 'igniting') {
       setConnectionStage('idle');
       return;
     }
 
-    if (connectionStage === 'igniting' && roomState === 'connecting') {
+    if (connectionStage === 'igniting' && connectionState === 'connecting') {
       setConnectionStage('connecting');
     }
 
-    if (roomState === 'connected') {
-      if (participantsCount > 0) {
+    if (connectionState === 'connected') {
+      const hasAgent = participants.some((p) => !p.isLocal);
+      if (hasAgent) {
         setConnectionStage('done');
       } else {
         setConnectionStage('waiting');
       }
     }
-  }, [roomState, participantsCount, connectionStage]);
+  }, [connectionState, participants, connectionStage]);
 
   useEffect(() => {
     if (connectionStage === 'done') {
@@ -107,12 +78,12 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   }, [connectionStage]);
 
   useEffect(() => {
-    if (roomState === 'disconnected' && isSessionActive) {
+    if (connectionState === 'disconnected' && isSessionActive) {
       setIsSessionActive(false);
       setIsCallEnded(true);
       setConnectionStage('idle');
     }
-  }, [roomState, isSessionActive]);
+  }, [connectionState, isSessionActive]);
 
   const handleStartCall = async () => {
     try {
