@@ -105,7 +105,7 @@ export interface AgentSessionView_01Props {
   /**
    * Message shown above the controls before the first chat message is sent.
    *
-   * @default 'Agent is listening, ask it a question'
+   * @default 'Agent is speaking'
    */
   preConnectMessage?: string;
   /**
@@ -156,7 +156,7 @@ export interface AgentSessionView_01Props {
 }
 
 export function AgentSessionView_01({
-  preConnectMessage = 'Agent is listening, ask it a question',
+  preConnectMessage = 'Agent is speaking',
   supportsChatInput = true,
   supportsVideoInput = true,
   supportsScreenShare = true,
