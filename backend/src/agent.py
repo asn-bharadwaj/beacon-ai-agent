@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 
@@ -8,11 +9,15 @@ from livekit.agents import (
     AgentSession,
     JobContext,
     JobProcess,
+    RunContext,
     cli,
+    function_tool,
     tokenize,
 )
 from livekit.plugins import deepgram, google, murf, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
+import db
 
 logger = logging.getLogger("agent")
 
@@ -44,6 +49,17 @@ LANGUAGE:
 3. When speaking Hindi/Hinglish, use natural, everyday, conversational colloquial terms. Avoid overly formal or literal translations. For example, use common terms like "gravity" instead of "gurutvakarshan", "force" instead of "bal", "space" instead of "antariksh", and keep the sentence structure natural and flowy (e.g. "gravity ek natural force hai jo sab cheezon ko zameen ki taraf kheenchti hai...").
 4. Keep the register informal, warm, respectful, and highly approachable.
 
+### LANGUAGE & SCRIPT
+Always write every language in its own native script.
+- Hindi → Devanagari (नमस्ते), never romanized (never "namaste").
+- Same rule for all non-English languages.
+
+MEMORY & PRIVACY:
+1. Lookup: As soon as the user introduces themselves or says their name, call the `lookup_user` tool to search for their profile.
+2. Greet Returning Callers: If the profile is found, greet them warmly by name and reference their previous topic or details (e.g. "नमस्ते रमेश! आपका फिर से स्वागत है। पिछली बार हम गुरुत्वाकर्षण के बारे में बात कर रहे थे। क्या वह जानकारी काम आई?"). Welcome them back and build on the topic.
+3. Ask Before Saving: You MUST explicitly ask the user for permission to remember them or save their progress (e.g., "क्या मैं अगली बार के लिए आपका नाम और आज की बातें याद रख सकता हूँ?").
+4. Saving: If the user grants permission (says yes), call the `save_user_profile` tool to store their name, language preference, and learning details. If they decline or say no, do not call the tool and do not save anything.
+
 GUARDRAILS:
 1. Refusals: Do not provide medical diagnoses, legal opinions, financial investment advice, or ask for sensitive details (PIN, OTP, passwords).
 2. Never-Claims: Never claim to be a human, doctor, financial advisor, or have official credentials.
@@ -60,22 +76,49 @@ class Assistant(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_PROMPT)
 
-    # To add tools, use the @function_tool decorator.
-    # Here's an example that adds a simple weather tool.
-    # You also have to add `from livekit.agents import function_tool, RunContext` to the top of this file
-    # @function_tool
-    # async def lookup_weather(self, context: RunContext, location: str):
-    #     """Use this tool to look up current weather information in the given location.
-    #
-    #     If the location is not supported by the weather service, the tool will indicate this. You must tell the user the location's weather is unavailable.
-    #
-    #     Args:
-    #         location: The location to look up weather information for (e.g. city name)
-    #     """
-    #
-    #     logger.info(f"Looking up weather for {location}")
-    #
-    #     return "sunny with a temperature of 70 degrees."
+    @function_tool
+    async def lookup_user(self, context: RunContext, name: str) -> str:
+        """Look up a user by their name to retrieve their profile and memory facts.
+
+        Args:
+            name: The name of the user to look up.
+        """
+        logger.info(f"Lookup request for user: {name}")
+        profile = db.lookup_user(name)
+        if profile:
+            return json.dumps(profile)
+        return f"No profile found for user name '{name}'."
+
+    @function_tool
+    async def save_user_profile(
+        self,
+        context: RunContext,
+        name: str,
+        language_preference: str,
+        current_level: str,
+        topics_covered: str,
+        mistakes: str,
+    ) -> str:
+        """Save or update the user's profile and memory facts in the database.
+
+        Before invoking this tool, you must explicitly ask the user for permission to save their name and facts (e.g. 'Is it okay if I remember your details for next time?').
+        If the user declines, you must NOT save their information.
+
+        Args:
+            name: The user's name.
+            language_preference: The user's preferred language (e.g. English, Hindi, Hinglish).
+            current_level: The user's current learning level (e.g. Beginner, Intermediate, Advanced).
+            topics_covered: Topics covered in today's lesson (e.g. gravity, planets, history).
+            mistakes: Mistakes they kept making or areas of struggle.
+        """
+        logger.info(f"Saving profile details for user: {name}")
+        facts = {
+            "current_level": current_level,
+            "topics_covered": topics_covered,
+            "mistakes": mistakes,
+        }
+        profile = db.save_user(name, language_preference, facts)
+        return f"Successfully saved profile for {name}: {json.dumps(profile)}"
 
 
 server = AgentServer()
@@ -83,6 +126,7 @@ server = AgentServer()
 
 def prewarm(proc: JobProcess):
     proc.userdata["vad"] = silero.VAD.load()
+    db.init_db()
 
 
 server.setup_fnc = prewarm
