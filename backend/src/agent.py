@@ -1,7 +1,10 @@
+import html
 import json
 import logging
 import random
+from datetime import datetime, timezone
 
+import aiohttp
 from dotenv import load_dotenv
 from livekit.agents import (
     Agent,
@@ -69,6 +72,11 @@ MEMORY & PRIVACY:
 3. Ask Before Saving: You MUST explicitly ask the user for permission to remember them or save their progress (e.g. in English: "Is it okay if I remember your name and progress for next time?" or in Hindi: "क्या मैं अगली बार के लिए आपका नाम और आज की बातें याद रख सकता हूँ?").
 4. Saving: If the user grants permission (says yes), call the `save_user_profile` tool to store their name, language preference, and learning details. If they decline or say no, do not call the tool and do not save anything.
 
+LIVE QUIZZES & EXERCISES:
+1. Triggering: When the user wants to practice, start a quiz, test their learning, or asks for exercises, call the `fetch_learning_exercise` tool. Match the category ('science', 'history', 'geography', 'arts') and level ('beginner', 'intermediate', 'advanced') to the user's request or profile.
+2. Reporting Live Data & Timestamp: When presenting the question to the user, you MUST explicitly state the source ("Open Trivia Database") and the live timestamp of when the data was retrieved (e.g. "I've fetched a geography question for you from the Open Trivia Database live API as of 2026-08-10...").
+3. Error Handling Out Loud: If the database is unreachable or returns an error message, explain to the user out loud that the live database is down or unreachable, and generate a relevant multiple-choice question yourself on the requested topic so the practice session can continue smoothly.
+
 GUARDRAILS:
 1. Refusals: Do not provide medical diagnoses, legal opinions, financial investment advice, or ask for sensitive details (PIN, OTP, passwords).
 2. Never-Claims: Never claim to be a human, doctor, financial advisor, or have official credentials.
@@ -128,6 +136,68 @@ class Assistant(Agent):
         }
         profile = db.save_user(name, language_preference, facts)
         return f"Successfully saved profile for {name}: {json.dumps(profile)}"
+
+    @function_tool
+    async def fetch_learning_exercise(
+        self, context: RunContext, category: str, level: str
+    ) -> str:
+        """Fetch a live educational quiz question from the Open Trivia Database API based on category and learning level.
+
+        This is your primary tool to retrieve interactive exercises when the user wants to practice or test their knowledge.
+        Always state the source and the live timestamp of the data to the user.
+
+        Args:
+            category: The subject category ('science', 'history', 'geography', 'arts').
+            level: The learning level ('beginner', 'intermediate', 'advanced').
+        """
+        logger.info(
+            f"Fetching learning exercise for category: {category}, level: {level}"
+        )
+
+        # Map category names to OpenTDB category IDs
+        cat_map = {"science": 17, "history": 23, "geography": 22, "arts": 25}
+        cat_id = cat_map.get(category.strip().lower(), 17)
+
+        # Map levels to OpenTDB difficulty
+        diff_map = {"beginner": "easy", "intermediate": "medium", "advanced": "hard"}
+        difficulty = diff_map.get(level.strip().lower(), "easy")
+
+        url = f"https://opentdb.com/api.php?amount=1&category={cat_id}&difficulty={difficulty}&type=multiple"
+
+        try:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(url, timeout=5) as response,
+            ):
+                if response.status != 200:
+                    raise Exception(f"HTTP Error {response.status}")
+                data = await response.json()
+                if data.get("response_code") != 0 or not data.get("results"):
+                    raise Exception("No results found in API payload")
+
+                result = data["results"][0]
+                question = html.unescape(result["question"])
+                correct_answer = html.unescape(result["correct_answer"])
+                incorrect_answers = [
+                    html.unescape(ans) for ans in result["incorrect_answers"]
+                ]
+
+                return json.dumps(
+                    {
+                        "source": "Open Trivia Database Live API",
+                        "fetched_at": datetime.now(timezone.utc).strftime(
+                            "%Y-%m-%d %H:%M:%S UTC"
+                        ),
+                        "category": result["category"],
+                        "difficulty": result["difficulty"],
+                        "question": question,
+                        "correct_answer": correct_answer,
+                        "choices": [correct_answer, *incorrect_answers],
+                    }
+                )
+        except Exception as e:
+            logger.error(f"Error calling Open Trivia API: {e}")
+            return "ERROR: The live quiz database is currently unreachable. Please generate a relevant multiple-choice question yourself for the user instead."
 
 
 server = AgentServer()
