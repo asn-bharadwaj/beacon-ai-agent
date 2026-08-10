@@ -2,6 +2,7 @@ import html
 import json
 import logging
 import random
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 import aiohttp
@@ -72,10 +73,10 @@ MEMORY & PRIVACY:
 3. Ask Before Saving: You MUST explicitly ask the user for permission to remember them or save their progress (e.g. in English: "Is it okay if I remember your name and progress for next time?" or in Hindi: "क्या मैं अगली बार के लिए आपका नाम और आज की बातें याद रख सकता हूँ?").
 4. Saving: If the user grants permission (says yes), call the `save_user_profile` tool to store their name, language preference, and learning details. If they decline or say no, do not call the tool and do not save anything.
 
-LIVE QUIZZES & EXERCISES:
-1. Triggering: When the user wants to practice, start a quiz, test their learning, or asks for exercises, call the `fetch_learning_exercise` tool. Match the category ('science', 'history', 'geography', 'arts') and level ('beginner', 'intermediate', 'advanced') to the user's request or profile.
-2. Reporting Live Data & Timestamp: When presenting the question to the user, you MUST explicitly state the source ("Open Trivia Database") and the live timestamp of when the data was retrieved (e.g. "I've fetched a geography question for you from the Open Trivia Database live API as of 2026-08-10...").
-3. Error Handling Out Loud: If the database is unreachable or returns an error message, explain to the user out loud that the live database is down or unreachable, and generate a relevant multiple-choice question yourself on the requested topic so the practice session can continue smoothly.
+LIVE NEWS BULLETINS:
+1. Triggering: When the user asks for recent news, updates, or current events, call the `fetch_live_news` tool. Match the category ('general', 'science', 'technology', 'world') to the user's request.
+2. Reporting Live Data & Timestamp: When sharing news stories, you MUST explicitly state the source ("BBC News") and the article publication timestamp (`pubDate`) for the bulletins you share (e.g. "I've retrieved a tech report from BBC News published on Monday...").
+3. Error Handling Out Loud: If the news feed is unreachable or returns an error, explain to the user out loud that the news feed is currently unreachable, and share a classic educational historical news event from general knowledge instead.
 
 GUARDRAILS:
 1. Refusals: Do not provide medical diagnoses, legal opinions, financial investment advice, or ask for sensitive details (PIN, OTP, passwords).
@@ -138,31 +139,27 @@ class Assistant(Agent):
         return f"Successfully saved profile for {name}: {json.dumps(profile)}"
 
     @function_tool
-    async def fetch_learning_exercise(
-        self, context: RunContext, category: str, level: str
-    ) -> str:
-        """Fetch a live educational quiz question from the Open Trivia Database API based on category and learning level.
+    async def fetch_live_news(self, context: RunContext, category: str) -> str:
+        """Fetch the latest live news bulletins from BBC News RSS feeds.
 
-        This is your primary tool to retrieve interactive exercises when the user wants to practice or test their knowledge.
-        Always state the source and the live timestamp of the data to the user.
+        Use this tool when the user asks for current affairs, recent news updates, or stories in science, technology, or general topics.
+        Always announce the source ('BBC News') and the publication timestamp of the news to the user.
 
         Args:
-            category: The subject category ('science', 'history', 'geography', 'arts').
-            level: The learning level ('beginner', 'intermediate', 'advanced').
+            category: The news category ('general', 'science', 'technology', 'world').
         """
-        logger.info(
-            f"Fetching learning exercise for category: {category}, level: {level}"
+        logger.info(f"Fetching live news for category: {category}")
+
+        # Map category names to BBC RSS feed URLs
+        feed_map = {
+            "general": "https://feeds.bbci.co.uk/news/rss.xml",
+            "science": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",
+            "technology": "https://feeds.bbci.co.uk/news/technology/rss.xml",
+            "world": "https://feeds.bbci.co.uk/news/world/rss.xml",
+        }
+        url = feed_map.get(
+            category.strip().lower(), "https://feeds.bbci.co.uk/news/rss.xml"
         )
-
-        # Map category names to OpenTDB category IDs
-        cat_map = {"science": 17, "history": 23, "geography": 22, "arts": 25}
-        cat_id = cat_map.get(category.strip().lower(), 17)
-
-        # Map levels to OpenTDB difficulty
-        diff_map = {"beginner": "easy", "intermediate": "medium", "advanced": "hard"}
-        difficulty = diff_map.get(level.strip().lower(), "easy")
-
-        url = f"https://opentdb.com/api.php?amount=1&category={cat_id}&difficulty={difficulty}&type=multiple"
 
         try:
             async with (
@@ -171,33 +168,48 @@ class Assistant(Agent):
             ):
                 if response.status != 200:
                     raise Exception(f"HTTP Error {response.status}")
-                data = await response.json()
-                if data.get("response_code") != 0 or not data.get("results"):
-                    raise Exception("No results found in API payload")
+                xml_data = await response.text()
+                root = ET.fromstring(xml_data)
+                items = root.findall(".//item")
 
-                result = data["results"][0]
-                question = html.unescape(result["question"])
-                correct_answer = html.unescape(result["correct_answer"])
-                incorrect_answers = [
-                    html.unescape(ans) for ans in result["incorrect_answers"]
-                ]
+                news_list = []
+                for item in items[:5]:
+                    title_elem = item.find("title")
+                    desc_elem = item.find("description")
+                    date_elem = item.find("pubDate")
+
+                    title = (
+                        html.unescape(title_elem.text)
+                        if title_elem is not None
+                        else "No Title"
+                    )
+                    description = (
+                        html.unescape(desc_elem.text)
+                        if desc_elem is not None
+                        else "No Description"
+                    )
+                    pub_date = date_elem.text if date_elem is not None else "No Date"
+
+                    news_list.append(
+                        {
+                            "title": title,
+                            "pub_date": pub_date,
+                            "summary": description,
+                        }
+                    )
 
                 return json.dumps(
                     {
-                        "source": "Open Trivia Database Live API",
+                        "source": "BBC News RSS Live Feed",
                         "fetched_at": datetime.now(timezone.utc).strftime(
                             "%Y-%m-%d %H:%M:%S UTC"
                         ),
-                        "category": result["category"],
-                        "difficulty": result["difficulty"],
-                        "question": question,
-                        "correct_answer": correct_answer,
-                        "choices": [correct_answer, *incorrect_answers],
+                        "articles": news_list,
                     }
                 )
         except Exception as e:
-            logger.error(f"Error calling Open Trivia API: {e}")
-            return "ERROR: The live quiz database is currently unreachable. Please generate a relevant multiple-choice question yourself for the user instead."
+            logger.error(f"Error fetching live news: {e}")
+            return "ERROR: The live news feed is currently unreachable. Please explain to the user that the live news service is down, and share a classic educational historical news fact instead."
 
 
 server = AgentServer()
