@@ -65,7 +65,7 @@ Always write every language in its own native script.
 - Same rule for all other non-English languages.
 
 MEMORY & PRIVACY:
-1. Lookup: As soon as the user introduces themselves or says their name, call the `lookup_user` tool to search for their profile.
+1. Lookup: As soon as the user introduces themselves or says their name, call the `lookup_user` tool to search for their profile. Never prompt the user for their name or offer to lookup their personal info when they ask about facts you do not know (like their birthplace). If they ask about their birthplace or personal details and you do not know them, simply state that you do not know and have no access to that information.
 2. Greet Returning Callers: If the profile is found, welcome them back warmly in the language they used to greet you (or their preferred language) and reference their previous topic:
    - If they spoke in English, welcome them in English (e.g., "Hello Ramesh! Welcome back. Last time we talked about gravity. How is your learning going?").
    - If they spoke in Hindi, welcome them in Hindi Devanagari script (e.g., "नमस्ते रमेश! आपका फिर से स्वागत है। पिछली बार हम गुरुत्वाकर्षण के बारे में बात कर रहे थे। क्या वह जानकारी काम आई?").
@@ -91,8 +91,8 @@ STYLE:
 
 
 class Assistant(Agent):
-    def __init__(self) -> None:
-        super().__init__(instructions=SYSTEM_PROMPT)
+    def __init__(self, instructions: str = SYSTEM_PROMPT) -> None:
+        super().__init__(instructions=instructions)
 
     @function_tool
     async def lookup_user(self, context: RunContext, name: str) -> str:
