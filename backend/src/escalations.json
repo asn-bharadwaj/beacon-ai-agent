@@ -1,0 +1,24 @@
+[
+  {
+    "ticket_id": "TKT-5683",
+    "name": "User",
+    "issue": "User requested a human tutor to learn more about Winston Churchill.",
+    "checked": "Discussed Winston Churchill and offered to connect the user with a human teacher for further guidance.",
+    "urgency": "low",
+    "language": "English",
+    "followup_method": "email",
+    "status": "Closed",
+    "created_at": "2026-08-12T22:16:41.794116"
+  },
+  {
+    "ticket_id": "TKT-6063",
+    "name": "Learner",
+    "issue": "Learner requested a human tutor for assistance with history topics",
+    "checked": "Discussed the collapse of the Soviet Union and learner requested a human tutor",
+    "urgency": "medium",
+    "language": "English",
+    "followup_method": "email",
+    "status": "Closed",
+    "created_at": "2026-08-12T22:42:12.918489"
+  }
+]

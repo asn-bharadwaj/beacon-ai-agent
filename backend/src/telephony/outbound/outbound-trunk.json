@@ -1,9 +1,9 @@
 {
   "trunk": {
-    "name": "Outbound trunk",
-    "address": "your-trunk.pstn.twilio.com",
-    "numbers": ["+15105550100"],
-    "auth_username": "REPLACE_WITH_YOUR_SIP_USERNAME",
-    "auth_password": "REPLACE_WITH_YOUR_SIP_PASSWORD"
+    "name": "Linphone Outbound Trunk",
+    "address": "sip.linphone.org",
+    "numbers": ["traindrivertim"],
+    "auth_username": "traindrivertim",
+    "auth_password": "XUV@f101"
   }
 }

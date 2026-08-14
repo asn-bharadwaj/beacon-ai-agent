@@ -83,16 +83,170 @@ GUARDRAILS:
 2. Never-Claims: Never claim to be a human, doctor, financial advisor, or have official credentials.
 3. Historical Neutrality: Never take sides in historical, political, or social conflicts. Always present objective historical facts, remain unbiased, and stay strictly true to documented history.
 4. Escalation Script: If asked for professional advice, say: "I am a general knowledge AI assistant, so I cannot give professional advice. Please check with a qualified expert for this."
+5. Human Help & Escalation: If the learner is frustrated (repeatedly says "I do not understand", "this is too hard", or "I'm stuck") or explicitly requests a human teacher or supervisor, you MUST:
+   - Empathize and offer to connect them with a human teacher.
+   - If you do not know the user's name yet (or they are default 'User'), you MUST ask for their name first: "Sure, I can set that up. What is your name?"
+   - Once you have their name, ask explicitly for their permission to share their details. Say: "Thank you, [Name]. Is it okay if I create a support request for you so a teacher can follow up?"
+   - If they grant permission, ask for their preferred followup method (phone call or email) if not already known, then call the `create_escalation` tool to generate a ticket.
+   - Speak the generated ticket ID (e.g. TKT-1234) and next steps.
+   - If they refuse permission, say: "No problem. I will not share any details. How else can I help you today?" and do NOT call the tool.
+6. Specialist Handoff & Routing:
+   - If the user asks for maths, arithmetic, calculations, or math puzzles, you MUST immediately call the `handoff_to_maths` tool without generating any conversational text response.
+   - If the user asks about space, planets, astronomy, gravity, physics, or science experiments, you MUST immediately call the `handoff_to_cosmos` tool without generating any conversational text response.
+   - If the user asks for language learning, translation help, grammar practice, or vocabulary games, you MUST immediately call the `handoff_to_language` tool without generating any conversational text response.
 
 STYLE:
 1. Maintain a friendly neighbor tone who loves sharing cool facts.
 2. Keep responses short and concise (2-3 sentences max), EXCEPT when listing news headlines where you should read out all 4-5 headlines clearly.
-3. Do NOT use bullet points, lists, emojis, markdown formatting, or symbols (read news headlines as a continuous natural sentence structure, e.g. "First,... Second,...")."""
+3. Do NOT use bullet points, lists, emojis, markdown formatting, or symbols (read news headlines as a continuous natural sentence structure, e.g. "First,... Second,...").
+"""
+
+
+async def send_discord_webhook(ticket: dict):
+    import os
+
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        logger.info("DISCORD_WEBHOOK_URL not set, skipping Discord integration.")
+        return
+
+    embed = {
+        "title": f"🚨 Human Help Request Escalated ({ticket['ticket_id']})",
+        "color": (
+            15158332
+            if ticket["urgency"].lower() in ["emergency", "high"]
+            else 3447003
+        ),
+        "fields": [
+            {"name": "Learner Name", "value": ticket["name"], "inline": True},
+            {"name": "Urgency", "value": ticket["urgency"].upper(), "inline": True},
+            {
+                "name": "Preferred Follow-up",
+                "value": ticket["followup_method"],
+                "inline": True,
+            },
+            {"name": "Language", "value": ticket["language"], "inline": True},
+            {"name": "Issue Description", "value": ticket["issue"], "inline": False},
+            {"name": "What was Checked", "value": ticket["checked"], "inline": False},
+            {"name": "Status", "value": ticket["status"], "inline": True},
+            {"name": "Created At", "value": ticket["created_at"], "inline": True},
+        ],
+        "footer": {"text": "Beacon AI Tutoring System"},
+    }
+
+    payload = {"embeds": [embed]}
+
+    try:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(webhook_url, json=payload, timeout=5) as response,
+        ):
+            if response.status == 204:
+                logger.info("Successfully posted escalation to Discord webhook.")
+            else:
+                logger.error(
+                    f"Failed to post to Discord. Status: {response.status}"
+                )
+    except Exception as e:
+        logger.error(f"Error calling Discord webhook: {e}")
+
+
+MATHS_PROMPT = """You are "Beacon Maths", a specialized Maths Practice Agent.
+Your ONLY job is to guide the learner through a fun mental math exercise.
+
+RULES:
+1. First response: Look at the user's last question. Start with: "Hi! I am the Beacon Maths specialist. Let's do a quick calculation challenge." and immediately ask a calculation question (e.g. "What is 15 plus 7?").
+2. BREVITY: Keep all your responses extremely short, maximum 1 or 2 simple sentences. Never write more than 2 sentences!
+3. FORMAT: Do NOT use markdown headings (like #, ##), bullet points, numbered lists, or emojis. Write in continuous plain text.
+4. Exit: Call the `hand_back_to_main` tool if the user wants to return or stop math practice.
+"""
+
+
+class MathsSpecialist(Agent):
+    def __init__(self, return_agent: Agent, call_info: dict | None = None) -> None:
+        super().__init__(instructions=MATHS_PROMPT)
+        self.return_agent = return_agent
+        self.call_info = call_info
+
+    async def on_enter(self) -> None:
+        logger.info("MathsSpecialist on_enter called. Triggering reply.")
+        self.session.generate_reply(chat_ctx=self.session.history)
+
+    @function_tool
+    async def hand_back_to_main(self, context: RunContext) -> Agent:
+        """Call this tool when the user wants to return to the general topic, stop practicing math, or talk about general knowledge/news."""
+        logger.info("Handing conversation back to return_agent")
+        return self.return_agent
+
+
+COSMOS_PROMPT = """You are "Beacon Cosmos", a specialized Space & Science Agent.
+Your ONLY job is to guide the learner through a fun science concept or space trivia.
+
+RULES:
+1. First response: Look at the user's last question (e.g. "what is gravity"). Start with: "Hi! I am the Beacon Cosmos specialist. Let's explore the universe together." and then immediately answer their question in the SAME turn.
+2. BREVITY: Keep all your responses extremely short, maximum 1 or 2 simple sentences. Never write more than 2 sentences!
+3. FORMAT: Do NOT use markdown headings (like #, ##), bullet points, numbered lists, or emojis. Write in continuous plain text.
+4. Exit: Call the `hand_back_to_main` tool if the user wants to return or stop space learning.
+"""
+
+
+class CosmosSpecialist(Agent):
+    def __init__(self, return_agent: Agent, call_info: dict | None = None) -> None:
+        super().__init__(instructions=COSMOS_PROMPT)
+        self.return_agent = return_agent
+        self.call_info = call_info
+
+    async def on_enter(self) -> None:
+        logger.info("CosmosSpecialist on_enter called. Triggering reply.")
+        self.session.generate_reply(chat_ctx=self.session.history)
+
+    @function_tool
+    async def hand_back_to_main(self, context: RunContext) -> Agent:
+        """Call this tool when the user wants to return to the general topic, stop learning about space, or talk about general knowledge/news."""
+        logger.info("Handing conversation back to return_agent")
+        return self.return_agent
+
+
+LANGUAGE_PROMPT = """You are "Beacon Bhasha", a specialized Language & Grammar Agent.
+Your ONLY job is to guide the learner through a fun translation or language puzzle.
+
+RULES:
+1. First response: Look at the user's last translation question. Start with: "Hi! I am the Beacon Bhasha specialist. Let's practice some languages." and immediately ask a translation challenge.
+2. BREVITY: Keep all your responses extremely short, maximum 1 or 2 simple sentences. Never write more than 2 sentences!
+3. FORMAT: Do NOT use markdown list symbols, bullets, or emojis. Write in continuous plain text.
+4. Exit: Call the `hand_back_to_main` tool if the user wants to return or stop language practice.
+"""
+
+
+class LanguageSpecialist(Agent):
+    def __init__(self, return_agent: Agent, call_info: dict | None = None) -> None:
+        super().__init__(instructions=LANGUAGE_PROMPT)
+        self.return_agent = return_agent
+        self.call_info = call_info
+
+    async def on_enter(self) -> None:
+        logger.info("LanguageSpecialist on_enter called. Triggering reply.")
+        self.session.generate_reply(chat_ctx=self.session.history)
+
+    @function_tool
+    async def hand_back_to_main(self, context: RunContext) -> Agent:
+        """Call this tool when the user wants to return to the general topic, stop practicing languages, or talk about general knowledge/news."""
+        logger.info("Handing conversation back to return_agent")
+        return self.return_agent
 
 
 class Assistant(Agent):
-    def __init__(self, instructions: str = SYSTEM_PROMPT) -> None:
+    def __init__(
+        self, instructions: str = SYSTEM_PROMPT, call_info: dict | None = None
+    ) -> None:
         super().__init__(instructions=instructions)
+        self.call_info = call_info
+
+    async def on_enter(self) -> None:
+        logger.info("Assistant on_enter called.")
+        if len(self.session.history.messages()) > 0:
+            logger.info("Transition back to Assistant. Triggering reply.")
+            self.session.generate_reply(chat_ctx=self.session.history)
 
     @function_tool
     async def lookup_user(self, context: RunContext, name: str) -> str:
@@ -135,8 +289,98 @@ class Assistant(Agent):
             "topics_covered": topics_covered,
             "mistakes": mistakes,
         }
+        if self.call_info:
+            self.call_info["success"] = True
         profile = db.save_user(name, language_preference, facts)
         return f"Successfully saved profile for {name}: {json.dumps(profile)}"
+
+    @function_tool
+    async def create_escalation(
+        self,
+        context: RunContext,
+        name: str,
+        issue: str,
+        checked: str,
+        urgency: str,
+        language: str,
+        followup_method: str,
+    ) -> str:
+        """Create a human help request (escalation ticket) for a teacher or supervisor.
+
+        Before calling this tool, you MUST explicitly ask the user for permission to share their details (e.g. 'Is it okay if I share this with a teacher?'). If they say no, do NOT call this tool.
+
+        Args:
+            name: The caller's name.
+            issue: What the caller needs help with (summary of the problem).
+            checked: What the agent/caller already checked or did during the session.
+            urgency: The urgency level ('low', 'medium', 'high', 'emergency').
+            language: The caller's language preference.
+            followup_method: The caller's preferred contact method (e.g., 'phone call', 'email').
+        """
+        if self.call_info:
+            self.call_info["success"] = True
+
+        ticket = db.create_escalation(
+            name=name,
+            issue=issue,
+            checked=checked,
+            urgency=urgency,
+            language=language,
+            followup_method=followup_method,
+        )
+
+        # Try sending to Discord Webhook asynchronously
+        await send_discord_webhook(ticket)
+
+        return f"Successfully created support ticket {ticket['ticket_id']}. A human tutor has been notified and will follow up with you."
+
+    @function_tool
+    async def handoff_to_maths(self, context: RunContext) -> Agent:
+        """Hand the conversation over to the specialized Maths Practice agent.
+
+        Use this tool when the user explicitly asks for maths questions, arithmetic practice, mental calculations, or math puzzles.
+        """
+        logger.info("Handing conversation over to MathsSpecialist")
+        specialist = MathsSpecialist(
+            return_agent=self, call_info=self.call_info
+        )
+        await context.session.say(
+            "I will connect you to our Maths specialist.",
+            allow_interruptions=True,
+        )
+        return specialist
+
+    @function_tool
+    async def handoff_to_cosmos(self, context: RunContext) -> Agent:
+        """Hand the conversation over to the specialized Cosmos & Science agent.
+
+        Use this tool when the user asks about space, planets, astronomy, gravity, physics, or science experiments.
+        """
+        logger.info("Handing conversation over to CosmosSpecialist")
+        specialist = CosmosSpecialist(
+            return_agent=self, call_info=self.call_info
+        )
+        await context.session.say(
+            "I will connect you to our Cosmos specialist.",
+            allow_interruptions=True,
+        )
+        return specialist
+
+    @function_tool
+    async def handoff_to_language(self, context: RunContext) -> Agent:
+        """Hand the conversation over to the specialized Language & translation agent.
+
+        Use this tool when the user asks for translation help, grammar practice, or vocabulary games.
+        """
+        logger.info("Handing conversation over to LanguageSpecialist")
+        specialist = LanguageSpecialist(
+            return_agent=self, call_info=self.call_info
+        )
+        await context.session.say(
+            "I will connect you to our Language specialist.",
+            allow_interruptions=True,
+        )
+        return specialist
 
     @function_tool
     async def fetch_live_news(self, context: RunContext, category: str) -> str:
@@ -197,6 +441,8 @@ class Assistant(Agent):
                             "summary": description,
                         }
                     )
+                if self.call_info:
+                    self.call_info["success"] = True
 
                 return json.dumps(
                     {
@@ -283,12 +529,57 @@ async def my_agent(ctx: JobContext):
     # # Start the avatar and wait for it to join
     # await avatar.start(session, room=ctx.room)
 
+    start_time = datetime.now()
+    call_info = {
+        "success": False,
+        "user_turns": 0,
+        "channel": (
+            "sip"
+            if ctx.room.name.startswith("sip")
+            or ctx.room.name.startswith("SIP_")
+            else "browser"
+        ),
+    }
+
+    @session.on("user_input_transcribed")
+    def on_user_speech(chat_msg):
+        call_info["user_turns"] += 1
+        logger.info(
+            f"User speech turn detected: {chat_msg.transcript} (Turns: {call_info['user_turns']})"
+        )
+
+    @ctx.room.on("participant_disconnected")
+    def on_participant_disconnected(participant):
+        if participant.identity == ctx.room.local_participant.identity:
+            return
+
+        logger.info("Caller participant disconnected. Logging analytics data.")
+        duration = (datetime.now() - start_time).total_seconds()
+        success = call_info["success"] or (call_info["user_turns"] >= 2)
+
+        failure_reason = None
+        if not success:
+            failure_reason = (
+                "early_hangup"
+                if call_info["user_turns"] == 0
+                else "incomplete_lesson"
+            )
+
+        db.save_call_record(
+            room_name=ctx.room.name,
+            channel=call_info["channel"],
+            duration=duration,
+            user_turns=call_info["user_turns"],
+            success=success,
+            failure_reason=failure_reason,
+        )
+
     # Join the room and connect to the user
     await ctx.connect()
 
     # Start the session, which initializes the voice pipeline and warms up the models
     await session.start(
-        agent=Assistant(),
+        agent=Assistant(call_info=call_info),
         room=ctx.room,
     )
 

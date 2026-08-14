@@ -21,10 +21,13 @@ import logging
 import os
 import sys
 
-# Configure path so we can import from src/
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+# Configure path so we can import from src/ without shadowing
+src_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir in sys.path:
+    sys.path.remove(script_dir)
 
 from dotenv import load_dotenv
 from livekit import api, rtc
@@ -77,8 +80,8 @@ CALLEE_IDENTITY = "phone-user"
 
 
 class OutboundAgent(Assistant):
-    def __init__(self, ctx: JobContext) -> None:
-        super().__init__(instructions=SYSTEM_PROMPT)
+    def __init__(self, ctx: JobContext, call_info: dict | None = None) -> None:
+        super().__init__(instructions=SYSTEM_PROMPT, call_info=call_info)
         self.ctx = ctx
 
     @function_tool
@@ -229,11 +232,53 @@ async def outbound_agent(ctx: JobContext):
         max_endpointing_delay=0.8,
     )
 
+    from datetime import datetime
+
+    start_time = datetime.now()
+    call_info = {
+        "success": False,
+        "user_turns": 0,
+        "channel": "sip",
+    }
+
+    @session.on("user_input_transcribed")
+    def on_user_speech(chat_msg):
+        call_info["user_turns"] += 1
+        logger.info(
+            f"Outbound user speech turn detected: {chat_msg.transcript} (Turns: {call_info['user_turns']})"
+        )
+
+    @ctx.room.on("participant_disconnected")
+    def on_participant_disconnected(participant):
+        if participant.identity == ctx.room.local_participant.identity:
+            return
+
+        logger.info("Outbound caller disconnected. Logging analytics data.")
+        duration = (datetime.now() - start_time).total_seconds()
+        success = call_info["success"] or (call_info["user_turns"] >= 2)
+
+        failure_reason = None
+        if not success:
+            failure_reason = (
+                "early_hangup"
+                if call_info["user_turns"] == 0
+                else "incomplete_lesson"
+            )
+
+        db.save_call_record(
+            room_name=ctx.room.name,
+            channel=call_info["channel"],
+            duration=duration,
+            user_turns=call_info["user_turns"],
+            success=success,
+            failure_reason=failure_reason,
+        )
+
     # Start the session while the phone is still ringing so the models are warm
     # by the time somebody picks up.
     session_started = asyncio.create_task(
         session.start(
-            agent=OutboundAgent(ctx),
+            agent=OutboundAgent(ctx, call_info=call_info),
             room=ctx.room,
             room_options=room_io.RoomOptions(
                 audio_input=room_io.AudioInputOptions(

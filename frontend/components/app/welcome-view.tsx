@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Clock, Globe, Mic, Palette, Rocket } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Brain, Database, Globe, Languages, Mic, PhoneCall, AlertTriangle, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/shadcn/utils';
 
@@ -17,34 +17,45 @@ export const WelcomeView = ({
   connectionStage,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
+  const [micError, setMicError] = useState<string | null>(null);
+  const [isSecure, setIsSecure] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const secure =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.protocol === 'https:';
+      setIsSecure(secure);
+    }
+  }, []);
+
   const categories = [
     {
-      icon: <Rocket className="size-5 text-indigo-500 dark:text-indigo-400" />,
-      title: 'Science & Space',
-      desc: 'Explore the cosmos and modern technology.',
+      icon: <Languages className="size-5 text-indigo-500 dark:text-indigo-400" />,
+      title: 'Multilingual Practice',
+      desc: 'Learn & converse naturally in native Hindi (Devanagari), Tamil, or English.',
       color: 'indigo',
     },
     {
-      icon: <Clock className="size-5 text-amber-500 dark:text-amber-400" />,
-      title: 'History & Epochs',
-      desc: 'Discover events and figures of the past.',
+      icon: <PhoneCall className="size-5 text-amber-500 dark:text-amber-400" />,
+      title: 'Scheduled Outbound Calls',
+      desc: 'Receive proactive language practice check-ins via Linphone/SIP at your preferred times.',
       color: 'amber',
     },
     {
-      icon: <Globe className="size-5 text-emerald-500 dark:text-emerald-400" />,
-      title: 'Geography & Travel',
-      desc: 'Embark on a voyage to discover our planet.',
+      icon: <Database className="size-5 text-emerald-500 dark:text-emerald-400" />,
+      title: 'Smart Memory Profiles',
+      desc: 'Stores learning levels, topics covered, and recent mistakes in SQLite to personalize check-ins.',
       color: 'emerald',
     },
     {
-      icon: <Palette className="size-5 text-rose-500 dark:text-rose-400" />,
-      title: 'Arts & Literature',
-      desc: 'Appreciate global culture and masterpieces.',
+      icon: <Brain className="size-5 text-rose-500 dark:text-rose-400" />,
+      title: 'Live News & Headlines',
+      desc: 'Retrieves and reads live general knowledge digests fetched in real-time from BBC News RSS.',
       color: 'rose',
     },
   ];
-
-  const [micError, setMicError] = useState<string | null>(null);
 
   const checkMicPermission = async (): Promise<boolean> => {
     try {
@@ -72,7 +83,6 @@ export const WelcomeView = ({
       await onStartCall();
     } catch (err: unknown) {
       console.error('Failed to start call:', err);
-
       const errMsg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
       if (
         errMsg.includes('permission') ||
@@ -108,112 +118,109 @@ export const WelcomeView = ({
   return (
     <div
       ref={ref}
-      className="bg-background flex min-h-svh w-full items-center justify-center px-6 pt-24 pb-12 md:px-16 lg:px-24"
+      className="bg-transparent flex min-h-svh w-full items-center justify-center px-6 pt-20 pb-16 md:px-12 lg:px-24 relative"
     >
-      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-stretch gap-16 lg:grid-cols-[1.2fr_0.8fr]">
-        {/* Left Column: Spacious Editorial Headline & Category Cards */}
-        <div className="animate-in fade-in slide-in-from-left-4 flex flex-col justify-center text-left duration-500">
-          {/* Bold attractive branding sub-header */}
-          <div className="flex items-center gap-4">
-            <span className="dark:text-primary font-sans text-xl font-black tracking-[0.2em] text-[#E0533C] uppercase sm:text-2xl">
-              BEACON
+      {/* Welcome page floating header */}
+      <header className="absolute top-0 inset-x-0 flex h-16 w-full items-center justify-between px-6 md:px-12 lg:px-24 select-none">
+        <div className="flex items-center gap-3">
+          <span className="font-sans text-sm font-black tracking-widest text-[#E0533C] dark:text-primary uppercase">
+            BEACON
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <a 
+            href="/analytics" 
+            className="border-border/10 bg-card/40 hover:bg-card/75 text-foreground flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-colors"
+          >
+            <span>Analytics Dashboard</span>
+          </a>
+          <a 
+            href="/tickets" 
+            className="border-border/10 bg-card/40 hover:bg-card/75 text-foreground flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-wider uppercase transition-colors"
+          >
+            <span>Help Desk Dashboard</span>
+          </a>
+        </div>
+      </header>
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-12 text-center animate-in fade-in duration-500">
+        {/* Top Header & Branding */}
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-3">
+            <span className="dark:text-primary font-sans text-xs font-black tracking-[0.3em] text-[#E0533C] uppercase">
+              BEACON SYSTEM
             </span>
-            <div className="dark:bg-primary h-0.5 w-12 rounded-full bg-[#E0533C] opacity-60" />
+            <div className="h-1.5 w-1.5 rounded-full bg-[#E0533C] dark:bg-primary" />
+            <span className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase">
+              v2.0 VOICE ASSISTANT
+            </span>
           </div>
 
-          {/* Main Serif Headline */}
-          <h1 className="text-foreground mt-6 font-serif text-4xl leading-[1.15] font-bold tracking-tight sm:text-5xl md:text-6xl">
-            <span className="text-primary font-serif font-normal italic">Guide</span> your curiosity{' '}
-            <br />
-            through the <span className="text-primary font-serif font-normal italic">
-              wonders
-            </span>{' '}
-            of our world.
+          <h1 className="text-foreground mt-4 font-serif text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl max-w-3xl">
+            Your Proactive <span className="text-primary font-serif font-normal italic">Voice Learning</span> Companion.
           </h1>
 
-          {/* Detailed Paragraph */}
-          <p className="text-muted-foreground mt-6 max-w-lg text-base leading-relaxed sm:text-lg">
-            Beacon AI is an intelligent voice tutor designed to make learning more accessible
-            through natural, real-time conversations. Speak to ask questions, explore history,
-            science, geography, and culture with friendly, down-to-earth explanations.
+          <p className="text-muted-foreground mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">
+            Beacon is an interactive voice tutor designed to make language practice and general knowledge access natural. Spark conversation to practice Hindi, Tamil, or English, fetch live news updates, and let Beacon personalize your learning status.
           </p>
-
-          {/* Clean Four-Category Grid */}
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {categories.map((cat, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'border-border/40 bg-card/50 hover:bg-card/90 group flex flex-col items-start rounded-2xl border p-5 transition-all duration-300 select-none hover:scale-[1.02] hover:shadow-lg',
-                  cat.color === 'indigo' && 'hover:border-indigo-500/30 hover:shadow-indigo-500/5',
-                  cat.color === 'amber' && 'hover:border-amber-500/30 hover:shadow-amber-500/5',
-                  cat.color === 'emerald' &&
-                    'hover:border-emerald-500/30 hover:shadow-emerald-500/5',
-                  cat.color === 'rose' && 'hover:border-rose-500/30 hover:shadow-rose-500/5'
-                )}
-              >
-                <div
-                  className={cn(
-                    'flex items-center justify-center rounded-xl border p-2 transition-colors duration-300',
-                    cat.color === 'indigo' &&
-                      'border-indigo-500/20 bg-indigo-500/10 group-hover:bg-indigo-500/20',
-                    cat.color === 'amber' &&
-                      'border-amber-500/20 bg-amber-500/10 group-hover:bg-amber-500/20',
-                    cat.color === 'emerald' &&
-                      'border-emerald-500/20 bg-emerald-500/10 group-hover:bg-emerald-500/20',
-                    cat.color === 'rose' &&
-                      'border-rose-500/20 bg-rose-500/10 group-hover:bg-rose-500/20'
-                  )}
-                >
-                  {cat.icon}
-                </div>
-                <h3 className="text-foreground mt-4 text-sm font-bold">{cat.title}</h3>
-                <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{cat.desc}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Right Column: Original Lighthouse Beacon Visualizer Card */}
-        <div className="animate-in fade-in slide-in-from-right-4 flex items-center justify-center duration-500">
-          <div className="border-foreground bg-card/65 relative flex w-full max-w-sm flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 p-8 pt-12 pb-12 shadow-[6px_6px_0px_var(--foreground)] backdrop-blur-md transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_var(--foreground)]">
-            {/* Lighthouse Tower Tower Line & Light Beam */}
-            <div className="absolute inset-x-0 top-10 flex flex-col items-center">
-              {/* Thin Vertical Tower Stem */}
-              <div className="dark:from-primary via-foreground/20 h-[140px] w-0.5 bg-linear-to-b from-amber-400 to-transparent" />
+        {/* Central Glowing Audio Portal Container */}
+        <div className="w-full max-w-md">
+          <div className="bg-card/30 border-border/10 relative flex w-full flex-col items-center justify-center overflow-hidden rounded-[32px] border p-8 shadow-2xl backdrop-blur-xl">
+            
+            {/* Ambient Backlight Pulsing */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-40 rounded-full bg-primary/10 blur-3xl pointer-events-none animate-pulse" />
 
-              {/* Glowing Amber Beacon Orb */}
-              <div className="dark:bg-primary absolute top-0 z-20 flex size-8 animate-pulse items-center justify-center rounded-full bg-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.6)]">
-                <div className="size-3 rounded-full bg-white" />
+            {/* Glowing Audio Portal Sphere */}
+            <div className="relative z-10 flex size-44 items-center justify-center">
+              {/* Outer Pulsing Wave Ring */}
+              <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-25" style={{ animationDuration: '3s' }} />
+              {/* Second Pulsing Wave Ring */}
+              <div className="absolute inset-4 rounded-full border border-primary/35 animate-pulse opacity-40" />
+              
+              {/* Rotating Gradient Core */}
+              <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-primary/20 via-background to-primary/5 p-[1px] animate-spin" style={{ animationDuration: '10s' }} />
+              
+              {/* Central Core sphere */}
+              <div className="absolute inset-10 rounded-full bg-card/85 flex items-center justify-center shadow-inner border border-border/5">
+                <Mic className="size-8 text-primary animate-pulse" />
               </div>
-
-              {/* Sweeping Light Beam Overlay */}
-              <div
-                className="animate-sweep pointer-events-none absolute top-4 z-10 h-[50px] w-[280px] origin-left bg-gradient-to-r from-amber-400/20 via-amber-300/5 to-transparent"
-                style={{ left: '50%' }}
-              />
             </div>
 
-            {/* Central Controls & Connect Action */}
-            <div className="z-30 mt-[180px] flex w-full flex-col items-center gap-6">
-              {micError && (
-                <div className="border-destructive/30 bg-destructive/10 text-destructive animate-in fade-in slide-in-from-bottom-2 max-w-xs rounded-xl border p-4 text-center text-xs leading-relaxed duration-200">
-                  <p className="mb-1 font-sans text-[10px] font-bold tracking-wider uppercase">
-                    Permission Error
-                  </p>
-                  <p className="mb-3">{micError}</p>
-                  <Button
-                    size="sm"
-                    onClick={handleRequestPermission}
-                    className="border-destructive/40 hover:bg-destructive/20 text-destructive h-8 w-full cursor-pointer rounded-lg border bg-transparent text-[10px] font-bold uppercase transition-all duration-150 active:scale-95"
-                  >
-                    Request Microphone Access
-                  </Button>
+            {/* Insecure Context Warning Alert */}
+            {!isSecure && (
+              <div className="z-20 mt-6 border-amber-500/20 bg-amber-500/10 text-amber-500 animate-in fade-in slide-in-from-bottom-2 max-w-xs rounded-xl border p-4 text-left text-xs leading-relaxed duration-200">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold uppercase tracking-wider text-[9px] mb-1">Insecure Context Warning</p>
+                    <p>Browser security blocks microphone access over HTTP on local IPs. Please open the website at <strong>http://localhost:3000</strong> to talk to Beacon.</p>
+                  </div>
                 </div>
-              )}
+              </div>
+            )}
 
+            {/* Mic Permission Error Message */}
+            {micError && (
+              <div className="z-20 mt-6 border-destructive/30 bg-destructive/10 text-destructive animate-in fade-in slide-in-from-bottom-2 max-w-xs rounded-xl border p-4 text-center text-xs leading-relaxed duration-200">
+                <p className="mb-1 font-sans text-[10px] font-bold tracking-wider uppercase">
+                  Permission Error
+                </p>
+                <p className="mb-3">{micError}</p>
+                <Button
+                  size="sm"
+                  onClick={handleRequestPermission}
+                  className="border-destructive/40 hover:bg-destructive/20 text-destructive h-8 w-full cursor-pointer rounded-lg border bg-transparent text-[10px] font-bold uppercase transition-all duration-150 active:scale-95"
+                >
+                  Request Microphone Access
+                </Button>
+              </div>
+            )}
+
+            {/* Session Linking States or CTA Button */}
+            <div className="z-20 mt-8 flex w-full flex-col items-center gap-4">
               {connectionStage !== 'idle' ? (
-                <div className="border-foreground bg-card/75 animate-in fade-in zoom-in-95 flex w-full max-w-xs flex-col rounded-2xl border-2 p-5 text-left shadow-[4px_4px_0px_var(--foreground)] backdrop-blur-sm">
+                <div className="border-border/15 bg-card/60 animate-in fade-in zoom-in-95 flex w-full max-w-xs flex-col rounded-2xl border p-5 text-left shadow-lg backdrop-blur-sm">
                   {/* Header */}
                   <div className="mb-3 flex items-center justify-between">
                     <span className="text-foreground text-[10px] font-black tracking-widest uppercase">
@@ -233,7 +240,7 @@ export const WelcomeView = ({
                   </div>
 
                   {/* Progress Track */}
-                  <div className="border-foreground bg-muted relative h-3.5 w-full overflow-hidden rounded-full border-2">
+                  <div className="bg-muted relative h-2.5 w-full overflow-hidden rounded-full border border-border/10">
                     <div
                       className={cn(
                         'h-full transition-all duration-500 ease-out',
@@ -271,28 +278,52 @@ export const WelcomeView = ({
                   </div>
                 </div>
               ) : (
-                <>
-                  <div className="flex flex-col items-center text-center">
-                    <span className="text-foreground text-xs font-bold tracking-wider uppercase">
-                      Connection Terminal
-                    </span>
-                    <span className="text-muted-foreground mt-1 text-[10px]">
-                      Click below to open the audio portal
-                    </span>
-                  </div>
-
-                  <Button
-                    size="lg"
-                    onClick={handleStartCall}
-                    className="border-foreground bg-primary text-primary-foreground flex w-52 cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 px-6 py-6 text-xs font-bold tracking-widest uppercase shadow-[4px_4px_0px_var(--foreground)] transition-all duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_var(--foreground)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-                  >
-                    <Mic className="size-4" />
-                    <span>{startButtonText}</span>
-                  </Button>
-                </>
+                <Button
+                  size="lg"
+                  disabled={!isSecure}
+                  onClick={handleStartCall}
+                  className={cn(
+                    "bg-primary hover:bg-primary/90 text-primary-foreground flex w-60 cursor-pointer items-center justify-center gap-2.5 rounded-2xl px-6 py-6 text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-xl shadow-primary/20 hover:scale-105 active:scale-95",
+                    !isSecure && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <Activity className="size-4 animate-pulse" />
+                  <span>{startButtonText}</span>
+                </Button>
               )}
             </div>
+
           </div>
+        </div>
+
+        {/* Categories Grid at Bottom */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 w-full">
+          {categories.map((cat, i) => (
+            <div
+              key={i}
+              className={cn(
+                'border-border/10 bg-card/25 hover:bg-card/45 group flex flex-col items-center rounded-2xl border p-6 transition-all duration-300 select-none hover:scale-[1.03] hover:shadow-lg',
+                cat.color === 'indigo' && 'hover:border-indigo-500/20 hover:shadow-indigo-500/5',
+                cat.color === 'amber' && 'hover:border-amber-500/20 hover:shadow-amber-500/5',
+                cat.color === 'emerald' && 'hover:border-emerald-500/20 hover:shadow-emerald-500/5',
+                cat.color === 'rose' && 'hover:border-rose-500/20 hover:shadow-rose-500/5'
+              )}
+            >
+              <div
+                className={cn(
+                  'flex items-center justify-center rounded-xl border p-2.5 transition-colors duration-300',
+                  cat.color === 'indigo' && 'border-indigo-500/20 bg-indigo-500/10 group-hover:bg-indigo-500/20',
+                  cat.color === 'amber' && 'border-amber-500/20 bg-amber-500/10 group-hover:bg-amber-500/20',
+                  cat.color === 'emerald' && 'border-emerald-500/20 bg-emerald-500/10 group-hover:bg-emerald-500/20',
+                  cat.color === 'rose' && 'border-rose-500/20 bg-rose-500/10 group-hover:bg-rose-500/20'
+                )}
+              >
+                {cat.icon}
+              </div>
+              <h3 className="text-foreground mt-4 text-sm font-bold tracking-wide">{cat.title}</h3>
+              <p className="text-muted-foreground mt-2 text-center text-xs leading-relaxed">{cat.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

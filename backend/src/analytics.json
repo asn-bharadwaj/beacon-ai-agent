@@ -1,0 +1,191 @@
+[
+  {
+    "room_name": "voice_assistant_room_2037",
+    "channel": "browser",
+    "duration": 157.7,
+    "user_turns": 4,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-14T22:36:20.998766"
+  },
+  {
+    "room_name": "voice_assistant_room_227",
+    "channel": "browser",
+    "duration": 22.3,
+    "user_turns": 3,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-14T22:21:55.942000"
+  },
+  {
+    "room_name": "voice_assistant_room_7452",
+    "channel": "browser",
+    "duration": 10.0,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T22:21:17.695084"
+  },
+  {
+    "room_name": "voice_assistant_room_2283",
+    "channel": "browser",
+    "duration": 4.5,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T22:20:59.579525"
+  },
+  {
+    "room_name": "voice_assistant_room_5823",
+    "channel": "browser",
+    "duration": 31.8,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:43:17.489244"
+  },
+  {
+    "room_name": "voice_assistant_room_5920",
+    "channel": "browser",
+    "duration": 18.5,
+    "user_turns": 3,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-14T21:37:30.885404"
+  },
+  {
+    "room_name": "voice_assistant_room_3560",
+    "channel": "browser",
+    "duration": 3.0,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:36:49.607952"
+  },
+  {
+    "room_name": "voice_assistant_room_308",
+    "channel": "browser",
+    "duration": 5.1,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:36:35.700563"
+  },
+  {
+    "room_name": "voice_assistant_room_5568",
+    "channel": "browser",
+    "duration": 7.4,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:36:24.004688"
+  },
+  {
+    "room_name": "voice_assistant_room_6064",
+    "channel": "browser",
+    "duration": 8.3,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:31:23.521510"
+  },
+  {
+    "room_name": "voice_assistant_room_7754",
+    "channel": "browser",
+    "duration": 4.3,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:31:04.556176"
+  },
+  {
+    "room_name": "voice_assistant_room_2647",
+    "channel": "browser",
+    "duration": 43.3,
+    "user_turns": 6,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-14T21:24:10.366948"
+  },
+  {
+    "room_name": "voice_assistant_room_8862",
+    "channel": "browser",
+    "duration": 22.6,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:22:38.641169"
+  },
+  {
+    "room_name": "voice_assistant_room_9925",
+    "channel": "browser",
+    "duration": 23.9,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:22:05.471075"
+  },
+  {
+    "room_name": "voice_assistant_room_1781",
+    "channel": "browser",
+    "duration": 4220.4,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T21:21:07.879779"
+  },
+  {
+    "room_name": "voice_assistant_room_4545",
+    "channel": "browser",
+    "duration": 7.6,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T20:06:22.342041"
+  },
+  {
+    "room_name": "voice_assistant_room_8973",
+    "channel": "browser",
+    "duration": 7.3,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-14T20:06:06.624180"
+  },
+  {
+    "room_name": "voice_assistant_room_55",
+    "channel": "browser",
+    "duration": 45.2,
+    "user_turns": 4,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-13T21:10:43.497467"
+  },
+  {
+    "room_name": "voice_assistant_room_3503",
+    "channel": "browser",
+    "duration": 23.0,
+    "user_turns": 0,
+    "success": false,
+    "failure_reason": "early_hangup",
+    "created_at": "2026-08-13T21:07:49.602913"
+  },
+  {
+    "room_name": "voice_assistant_room_4503",
+    "channel": "browser",
+    "duration": 56.5,
+    "user_turns": 2,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-13T21:06:59.094035"
+  },
+  {
+    "room_name": "voice_assistant_room_8906",
+    "channel": "browser",
+    "duration": 74.3,
+    "user_turns": 2,
+    "success": true,
+    "failure_reason": null,
+    "created_at": "2026-08-13T21:05:47.831441"
+  }
+]

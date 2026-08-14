@@ -201,84 +201,168 @@ export function AgentSessionView_01({
   return (
     <section
       ref={ref}
-      className={cn('bg-background relative z-10 h-full w-full overflow-hidden', className)}
+      className={cn('bg-background beacon-bg relative z-10 h-full w-full overflow-hidden flex flex-col', className)}
       {...props}
     >
-      <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
-      {/* transcript */}
+      {/* Top Header */}
+      <header className="border-border/10 bg-background/50 flex h-16 w-full shrink-0 items-center justify-between border-b px-6 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <span className="font-sans text-sm font-black tracking-widest text-primary uppercase">
+            BEACON CONSOLE
+          </span>
+          <span className="bg-primary/10 text-primary rounded-full px-2.5 py-0.5 text-[10px] font-bold">
+            Live Telephony & AI
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <a 
+            href="/tickets" 
+            className="border-border/10 bg-card/40 hover:bg-card/75 text-foreground flex items-center gap-2 rounded-full border px-4 py-1 text-xs font-bold tracking-wider uppercase transition-colors"
+          >
+            <span>Help Desk</span>
+          </a>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+            <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
+            Livekit Cloud: Connected
+          </div>
+        </div>
+      </header>
 
-      <div className="absolute top-0 bottom-[135px] flex w-full flex-col md:bottom-[170px]">
-        <AnimatePresence>
-          {chatOpen && (
-            <motion.div
-              {...CHAT_MOTION_PROPS}
-              className="flex h-full w-full flex-col gap-4 space-y-3 transition-opacity duration-300 ease-out"
-            >
-              <AgentChatTranscript
-                agentState={agentState}
-                messages={messages}
-                className="mx-auto w-full max-w-2xl [&_.is-user>div]:rounded-[22px] [&>div>div]:px-4 [&>div>div]:pt-40 md:[&>div>div]:px-6"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      {/* Tile layout */}
-      <TileLayout
-        chatOpen={chatOpen}
-        audioVisualizerType={audioVisualizerType}
-        audioVisualizerColor={audioVisualizerColor}
-        audioVisualizerColorShift={audioVisualizerColorShift}
-        audioVisualizerBarCount={audioVisualizerBarCount}
-        audioVisualizerRadialBarCount={audioVisualizerRadialBarCount}
-        audioVisualizerRadialRadius={audioVisualizerRadialRadius}
-        audioVisualizerGridRowCount={audioVisualizerGridRowCount}
-        audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
-        audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
-      />
-      {/* Bottom */}
-      <motion.div
-        {...BOTTOM_VIEW_MOTION_PROPS}
-        className="absolute inset-x-3 bottom-0 z-50 md:inset-x-12"
-      >
-        {/* Pre-connect message */}
-        {isPreConnectBufferEnabled && (
-          <AnimatePresence>
-            {messages.length === 0 && (
-              <MotionMessage
-                key="pre-connect-message"
-                duration={2}
-                aria-hidden={messages.length > 0}
-                {...SHIMMER_MOTION_PROPS}
-                className="pointer-events-none mx-auto block w-full max-w-2xl pb-4 text-center text-sm font-semibold"
-              >
-                {preConnectMessage}
-              </MotionMessage>
-            )}
-          </AnimatePresence>
-        )}
-        {/* Agent State Status Indicator */}
-        <div className="mx-auto flex justify-center pb-4 select-none">
+      {/* Main Content Area */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* LEFT PANEL: Session Insights (hidden on mobile, visible on desktop) */}
+        <aside className="border-border/10 bg-card/10 w-80 border-r p-6 hidden xl:flex flex-col justify-between backdrop-blur-xs select-none">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-foreground text-xs font-bold tracking-wider uppercase mb-3">
+                System Architecture
+              </h3>
+              <div className="space-y-3">
+                <div className="bg-card/40 border-border/20 rounded-xl border p-3">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">
+                    TTS Voice Engine
+                  </p>
+                  <p className="text-foreground text-xs font-semibold mt-1">Murf Falcon (Anisha)</p>
+                </div>
+                <div className="bg-card/40 border-border/20 rounded-xl border p-3">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">LLM Brain</p>
+                  <p className="text-foreground text-xs font-semibold mt-1">
+                    Gemini 3.5 Flash-lite
+                  </p>
+                </div>
+                <div className="bg-card/40 border-border/20 rounded-xl border p-3">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">STT Ears</p>
+                  <p className="text-foreground text-xs font-semibold mt-1">
+                    Deepgram Nova-3 (Multilingual)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-foreground text-xs font-bold tracking-wider uppercase mb-3">
+                Suggested Prompts
+              </h3>
+              <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+                <p className="bg-card/30 border border-border/10 hover:border-primary/20 rounded-lg p-2.5 transition-colors cursor-pointer">
+                  "बीकन, आज के मुख्य समाचार क्या हैं?"
+                </p>
+                <p className="bg-card/30 border border-border/10 hover:border-primary/20 rounded-lg p-2.5 transition-colors cursor-pointer">
+                  "Tell me a story about space."
+                </p>
+                <p className="bg-card/30 border border-border/10 hover:border-primary/20 rounded-lg p-2.5 transition-colors cursor-pointer">
+                  "My name is Ramesh. Can you remember me?"
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-[10px] text-muted-foreground/60 leading-relaxed">
+            Beacon reads RSS news and saves profile progress in SQLite.
+          </div>
+        </aside>
+
+        {/* CENTER PANEL: Visualizer (always visible) */}
+        <div className="relative flex flex-1 flex-col items-center justify-center p-4">
+          {/* Ambient background glow pulsing when speaking */}
           <div
             className={cn(
-              'border-foreground flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-wider uppercase shadow-[2px_2px_0px_var(--foreground)] transition-all duration-300',
-              agentState === 'speaking'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card text-foreground'
+              'absolute size-[350px] rounded-full blur-[100px] opacity-20 transition-all duration-1000 pointer-events-none',
+              agentState === 'speaking' ? 'bg-primary scale-110 animate-pulse' : 'bg-emerald-500 scale-95'
             )}
-          >
+          />
+
+          {/* Audio Visualizer container */}
+          <div className="relative flex items-center justify-center w-full max-w-lg aspect-square">
+            <TileLayout
+              chatOpen={false}
+              audioVisualizerType={audioVisualizerType}
+              audioVisualizerColor={audioVisualizerColor}
+              audioVisualizerColorShift={audioVisualizerColorShift}
+              audioVisualizerBarCount={audioVisualizerBarCount}
+              audioVisualizerRadialBarCount={audioVisualizerRadialBarCount}
+              audioVisualizerRadialRadius={audioVisualizerRadialRadius}
+              audioVisualizerGridRowCount={audioVisualizerGridRowCount}
+              audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
+              audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
+            />
+          </div>
+
+          {/* Status Indicators */}
+          <div className="z-10 mt-6 flex flex-col items-center gap-3">
             <div
               className={cn(
-                'size-2 rounded-full',
-                agentState === 'speaking' ? 'animate-pulse bg-white' : 'animate-ping bg-emerald-500'
+                'border-foreground flex items-center gap-2 rounded-full border px-5 py-2 text-xs font-bold tracking-widest uppercase shadow-[3px_3px_0px_var(--foreground)] transition-all duration-300',
+                agentState === 'speaking'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card text-foreground'
               )}
-            />
-            <span>{agentState === 'speaking' ? 'Agent is speaking' : 'Listening to you'}</span>
+            >
+              <div
+                className={cn(
+                  'size-2 rounded-full',
+                  agentState === 'speaking' ? 'animate-pulse bg-white' : 'animate-ping bg-emerald-500'
+                )}
+              />
+              <span>{agentState === 'speaking' ? 'Beacon is speaking' : 'Listening to you'}</span>
+            </div>
+
+            {isPreConnectBufferEnabled && messages.length === 0 && (
+              <p className="text-muted-foreground animate-pulse text-xs font-semibold">
+                {preConnectMessage}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
-          <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
+        {/* RIGHT PANEL: Live Transcript (always visible on desktop, toggle on mobile) */}
+        <aside
+          className={cn(
+            'border-border/10 bg-card/10 w-96 border-l flex flex-col transition-all duration-300 backdrop-blur-xs',
+            'hidden md:flex'
+          )}
+        >
+          <div className="border-border/10 flex h-14 items-center justify-between border-b px-6 shrink-0">
+            <span className="text-foreground text-xs font-bold tracking-wider uppercase">
+              Live Transcript
+            </span>
+            <span className="bg-foreground/5 text-muted-foreground rounded-full px-2.5 py-0.5 text-[10px] font-bold">
+              {messages.length} Messages
+            </span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <AgentChatTranscript
+              agentState={agentState}
+              messages={messages}
+              className="w-full h-full [&_.is-user>div]:rounded-[22px] [&>div>div]:px-2 [&>div>div]:pt-4"
+            />
+          </div>
+        </aside>
+      </div>
+
+      {/* Control Bar at Bottom */}
+      <footer className="border-border/10 bg-background/85 flex h-24 w-full shrink-0 items-center justify-center border-t px-6 backdrop-blur-md">
+        <div className="w-full max-w-2xl">
           <AgentControlBar
             variant="livekit"
             controls={controls}
@@ -288,7 +372,7 @@ export function AgentSessionView_01({
             onIsChatOpenChange={setChatOpen}
           />
         </div>
-      </motion.div>
+      </footer>
     </section>
   );
 }
